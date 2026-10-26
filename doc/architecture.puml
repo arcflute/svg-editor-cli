@@ -1,0 +1,47 @@
+@startuml
+!pragma layout smetana
+title SVG CLI - planned package dependencies (round 1)
+skinparam componentStyle rectangle
+skinparam shadowing false
+
+package "src/bootstrap" as Bootstrap {
+  component "main.ts\ncurrent composition root" as Main
+}
+package "src/cli" as CLI {
+  component "CliShell (current)\nTokenizer / CommandParser (planned)" as Shell
+}
+package "src/application (planned)" as Application {
+  component "EditorSession / CommandDispatcher\nCommand objects / HistoryManager" as Commands
+  component "DocumentStore\nSvgCodec" as Ports <<interfaces>>
+}
+package "src/domain (planned)" as Domain {
+  component "SvgDocument / Shape\nGroup / six built-in shapes\nShapeFactory" as Model
+}
+package "src/infrastructure (planned)" as Infrastructure {
+  component "FileDocumentStore\nXmlSvgCodec" as Adapters
+}
+
+Main --> Shell : constructs
+Bootstrap ..> Application : future wiring
+Bootstrap ..> Infrastructure : future wiring
+Bootstrap ..> Domain : future wiring
+CLI ..> Application : parsed requests
+Application ..> Domain : behavior / snapshots
+Adapters ..|> Ports : implements
+Infrastructure ..> Domain : construct / traverse
+
+note bottom of Domain
+  No dependency on outer packages, Node IO or XML.
+  Polymorphic behavior; ordered Composite tree.
+end note
+note bottom of Commands
+  Only two name dispatch locations:
+  CommandDispatcher and ShapeFactory.
+  Future: registered command / ShapeProvider factories.
+end note
+legend bottom
+  Solid arrow: current main -> CliShell
+  Dotted arrows: planned source dependencies / implementations
+  Tests are external consumers, never production dependencies.
+endlegend
+@enduml

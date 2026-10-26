@@ -1,0 +1,24 @@
+{
+  "name": "svg-editor-cli-lab",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Advanced Software Development lab: an object-oriented SVG CLI editor",
+  "type": "module",
+  "engines": {
+    "node": ">=22.15.0 <23",
+    "npm": ">=10"
+  },
+  "scripts": {
+    "cli": "tsx src/bootstrap/main.ts",
+    "build": "tsc -p tsconfig.build.json",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "test": "vitest run"
+  },
+  "devDependencies": {
+    "@types/node": "22.15.3",
+    "tsx": "4.23.15",
+    "typescript": "5.9.3",
+    "vite": "8.3.5",
+    "vitest": "5.0.5"
+  }
+}
