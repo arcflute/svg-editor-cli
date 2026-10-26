@@ -1,12 +1,15 @@
 import { createInterface } from 'node:readline';
 import type { Readable, Writable } from 'node:stream';
+import { Tokenizer } from './Tokenizer.js';
+import type { CommandDispatcher } from '../application/CommandDispatcher.js';
 
-/** The initial REPL only handles transport; business commands arrive later. */
+/** Transport and lexical adapter; all business dispatch goes through application. */
 export class CliShell {
   public constructor(
     private readonly input: Readable,
     private readonly output: Writable,
     private readonly errorOutput: Writable,
+    private readonly dispatcher: CommandDispatcher,
     private readonly terminal: boolean = false,
   ) {}
 
@@ -19,14 +22,22 @@ export class CliShell {
       prompt: 'svg> ',
     });
 
-    this.output.write('svg-editor 0.1 — CLI scaffold; commands are not implemented yet.\n');
+    const tokenizer = new Tokenizer();
+    this.output.write("svg-editor 0.1 — type 'help' for commands\n");
     lines.prompt();
 
     try {
       for await (const line of lines) {
-        if (line.trim().length > 0) {
-          this.errorOutput.write('error: command not implemented in this scaffold\n');
+        let output: readonly string[];
+        try {
+          output = this.dispatcher.execute(tokenizer.tokenize(line));
+        } catch (error) {
+          const message = error instanceof Error ? error.message : 'command failed';
+          this.errorOutput.write(`error: ${message.replace(/[\r\n\u2028\u2029]/gu, ' ')}\n`);
+          lines.prompt();
+          continue;
         }
+        if (output.length > 0) this.output.write(`${output.join('\n')}\n`);
         lines.prompt();
       }
     } finally {

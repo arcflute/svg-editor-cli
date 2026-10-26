@@ -1,6 +1,6 @@
 # SVG 编辑器 CLI
 
-《高级软件开发技术》个人 Lab。当前完成需求、架构、启动骨架，以及六类型领域模型、文档树约束和深拷贝；CLI 业务命令尚未实现。
+《高级软件开发技术》个人 Lab。第三轮已贯通分词、Command、应用会话与 `init/create/tree/show/help`；支持六种内置图形、嵌套容器及只读查询。编辑、历史和 SVG 文件读写留到后续轮。
 
 需要 Node.js 22（>=22.15.0）与 npm 10+。
 
@@ -12,7 +12,18 @@ npm test
 npm run build
 ```
 
-CLI 显示 `svg>`，读取输入并明确提示命令尚未实现；EOF 退出。构建后可运行 `node dist/bootstrap/main.js`。
+CLI 显示 `svg>`，输入 `help` 查看语法；后续命令明确标为尚未实现。EOF 退出，不提供 exit/quit。构建后可运行 `node dist/bootstrap/main.js`。
+
+```text
+init
+create g scene
+create rect r1 10 20 100 50 #4a90d9 in scene
+create text t1 20 45 "你好 SVG" in scene
+tree
+show r1
+```
+
+脚本回放方法与引号规则见 [examples/README.md](examples/README.md)，可执行样例为 [round3.commands.txt](examples/round3.commands.txt)。
 
 - [正式提交文档、架构与真实过程记录](doc/README.md)
 - [需求及验收矩阵](doc/requirements.md)

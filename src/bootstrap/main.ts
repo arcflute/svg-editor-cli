@@ -1,7 +1,12 @@
 import { stdin, stdout, stderr } from 'node:process';
 import { CliShell } from '../cli/CliShell.js';
+import { ShapeFactory } from '../domain/ShapeFactory.js';
+import { CommandDispatcher } from '../application/CommandDispatcher.js';
+import { EditorSession } from '../application/EditorSession.js';
 
-const shell = new CliShell(stdin, stdout, stderr, Boolean(stdin.isTTY && stdout.isTTY));
+const factory = new ShapeFactory();
+const dispatcher = new CommandDispatcher(new EditorSession(factory), factory);
+const shell = new CliShell(stdin, stdout, stderr, dispatcher, Boolean(stdin.isTTY && stdout.isTTY));
 
 try {
   await shell.run();

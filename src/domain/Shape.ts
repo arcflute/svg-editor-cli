@@ -4,6 +4,7 @@ import { Validation } from './Validation.js';
 import type { Group } from './Group.js';
 import type { ShapeStyle } from './ShapeStyle.js';
 import type { SvgDocument } from './SvgDocument.js';
+import type { GeometryDescription, ShapeDescription } from './ShapeDescription.js';
 
 export abstract class Shape extends TreeNode {
   readonly #id: string;
@@ -30,6 +31,19 @@ export abstract class Shape extends TreeNode {
   }
   protected override get nodeId(): string { return this.#id; }
   protected get ownAttributes(): Readonly<Record<string, string | number>> { return {}; }
+  protected get geometryDescription(): GeometryDescription { return {}; }
+
+  public describe(): ShapeDescription {
+    const geometry = this.geometryDescription;
+    return Object.freeze({
+      id: this.id, type: this.type, attributes: this.attributes, style: Object.freeze({ ...this.#style }),
+      geometry: Object.freeze({
+        ...geometry,
+        fields: Object.freeze({ ...geometry.fields }),
+        points: Object.freeze((geometry.points ?? []).map(point => Object.freeze({ ...point }))),
+      }),
+    });
+  }
 
   public move(dx: number, dy: number): void {
     Validation.finite(dx, 'dx');

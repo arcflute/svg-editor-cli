@@ -1,6 +1,7 @@
 import { GeometricShape } from './GeometricShape.js';
 import { Geometry } from './Geometry.js';
 import type { ShapeStyle } from './ShapeStyle.js';
+import type { GeometryDescription } from './ShapeDescription.js';
 
 export class Circle extends GeometricShape {
   public constructor(id: string, cx: number, cy: number, r: number, style: ShapeStyle = {}) {
@@ -11,5 +12,6 @@ export class Circle extends GeometricShape {
   public get cx(): number { return this.coordinate('cx'); }
   public get cy(): number { return this.coordinate('cy'); }
   public get r(): number { return this.coordinate('r'); }
+  protected override get geometryDescription(): GeometryDescription { return { fields: { cx: this.cx, cy: this.cy, r: this.r } }; }
   public override clone(): Circle { return new Circle(this.id, this.cx, this.cy, this.r, this.style); }
 }

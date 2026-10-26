@@ -1,6 +1,6 @@
 @startuml
 !pragma layout smetana
-title SVG CLI - implemented domain and shell (round 2)
+title SVG CLI - creation and queries (round 3)
 skinparam componentStyle rectangle
 skinparam shadowing false
 
@@ -8,31 +8,38 @@ package "src/bootstrap" as Bootstrap {
   component "main.ts\ncurrent composition root" as Main
 }
 package "src/cli" as CLI {
-  component "CliShell (current)\nTokenizer / CommandParser (planned)" as Shell
+  component "CliShell / Tokenizer\nstdin, stdout, stderr" as Shell
 }
-package "src/application (planned)" as Application {
-  component "EditorSession / CommandDispatcher\nCommand objects / HistoryManager" as Commands
-  component "DocumentStore\nSvgCodec" as Ports <<interfaces>>
+package "src/application" as Application {
+  component "CommandDispatcher / ArgumentParser\nCommand: Init / Create / Tree / Show / Help" as Commands
+  component "EditorSession\ncandidate clone -> validate -> commit" as Session
+  component "DocumentView / TextPresenter\nimmutable values -> output lines" as Presentation
+  component "DocumentStore / SvgCodec\n(planned interfaces)" as Ports <<future>>
 }
 package "src/domain (implemented)" as Domain {
-  component "SvgDocument / TreeNode\nShape / GeometricShape / Geometry\nRect / Circle / Ellipse / Line / Text / Group\nShapeFactory / Validation / DomainError" as Model
+  component "SvgDocument / TreeNode\nShape / GeometricShape / Geometry\nRect / Circle / Ellipse / Line / Text / Group\nShapeFactory (constructors + parameter metadata)\nShapeDescription / Validation / DomainError" as Model
 }
 package "src/infrastructure (planned)" as Infrastructure {
   component "FileDocumentStore\nXmlSvgCodec" as Adapters
 }
 package "tests" as Tests {
-  component "Domain behavior / tree / clone / flowchart\nCLI process smoke tests" as Checks
+  component "Domain / tokenizer / commands / session\nCLI smoke tests and script replay" as Checks
 }
 
 Main --> Shell : constructs
-Bootstrap ..> Application : future wiring
+Main --> Commands : constructs
+Main --> Session : constructs
+Main --> Model : constructs factory
 Bootstrap ..> Infrastructure : future wiring
-Bootstrap ..> Domain : future wiring
-CLI ..> Application : parsed requests
-Application ..> Domain : behavior / snapshots
+Shell --> Commands : tokens / results
+Commands --> Session : use cases
+Commands --> Presentation : query formatting
+Session --> Model : behavior / clone / descriptions
+Commands --> Model : neutral parameter metadata
 Adapters ..|> Ports : implements
 Infrastructure ..> Domain : construct / traverse
 Checks --> Model : verified behavior
+Checks --> Commands : parsing / atomicity
 Checks --> Main : starts child process
 
 note bottom of Domain
@@ -42,6 +49,8 @@ note bottom of Domain
   clone() preserves instances, links and ID index.
 end note
 note bottom of Commands
+  Implemented: five commands, no history stack or IO.
+  HistoryManager remains planned.
   Only two name dispatch locations:
   CommandDispatcher and ShapeFactory.
   Future: registered command / ShapeProvider factories.
@@ -49,6 +58,6 @@ end note
 legend bottom
   Solid arrows: implemented dependencies / tests
   Dotted arrows: planned source dependencies / implementations
-  Domain is not connected to the CLI yet.
+  Shape-specific presentation uses polymorphic descriptions.
 endlegend
 @enduml

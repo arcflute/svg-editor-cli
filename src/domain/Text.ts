@@ -2,6 +2,7 @@ import { GeometricShape } from './GeometricShape.js';
 import { Geometry } from './Geometry.js';
 import { Validation } from './Validation.js';
 import type { ShapeStyle } from './ShapeStyle.js';
+import type { GeometryDescription } from './ShapeDescription.js';
 
 export class Text extends GeometricShape {
   #text: string;
@@ -15,6 +16,9 @@ export class Text extends GeometricShape {
   public get x(): number { return this.coordinate('x'); }
   public get y(): number { return this.coordinate('y'); }
   public get text(): string { return this.#text; }
+  protected override get geometryDescription(): GeometryDescription {
+    return { points: [{ x: this.x, y: this.y }], text: this.text };
+  }
   public override clone(): Text { return new Text(this.id, this.x, this.y, this.text, this.style); }
   protected override get ownAttributes(): Readonly<Record<string, string | number>> {
     return { ...super.ownAttributes, text: this.#text };

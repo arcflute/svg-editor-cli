@@ -1,11 +1,11 @@
-# SVG 编辑器（CLI）个人 Lab：正式提交文档（第二轮）
+# SVG 编辑器（CLI）个人 Lab：正式提交文档（第三轮）
 
 ## 1. 项目信息和运行方式
 
 - 课程：《高级软件开发技术》；作业：Lab1 Phase 1。
 - 作业基线：[phase_cli_1.md](../phase_cli_1.md)，保持原文不变。
 - Git 仓库地址：[arcflute/svg-editor-cli](https://github.com/arcflute/svg-editor-cli)。本项目独立仓库的 origin 为 `https://github.com/arcflute/svg-editor-cli.git`，目标分支 main。
-- 当前进度：第二轮——六类型领域模型、文档树与 ID/结构约束、深拷贝及领域测试已实现。**分词、CLI 业务命令、Command 执行器、SVG 读写与历史仍未实现**；领域层尚未接入 CLI。
+- 当前进度：第三轮——在既有六类型领域模型上，已贯通分词、Command、应用会话和 `init/create/tree/show/help`；create 使用独立候选文档成功后提交。**其余编辑/结构命令、undo/redo、read/save/canvas、SVG 读写尚未实现**。
 - 第一轮独立提交：`c6b5e137ccd1fa8fb760844efb87d17d08660144`；第二轮独立提交：`b930b61cb561aaf07d5154ba84d051b71c66b902`。此前推送受 HTTPS Git 认证阻碍，用户完成认证后已确认两轮均在远程 main 历史中，且本地 main 已跟踪 origin/main。
 - 记录日期：2026-10-26（Asia/Shanghai）。作者姓名、学号、课程截止时间尚未提供，不代填。
 - 实际开发环境：Windows PowerShell；Node.js v22.15.0；npm 10.9.2；Git 2.39.1.windows.1。第一轮结束时身份缺失；开始第二轮前，已按用户提供的署名和邮箱配置项目级 Git 身份，不修改全局配置。
@@ -21,9 +21,11 @@ npm run build
 node dist/bootstrap/main.js
 ```
 
-`npm test` 使用 `vitest run`，执行一次退出。CLI 显示 `svg-editor 0.1` 启动信息与 `svg> `，读取输入；非空输入统一输出 `error: command not implemented in this scaffold`，不会返回 created/saved 等虚假成功。空行重新提示。EOF 正常结束，Windows 终端一般可在空行按 Ctrl+Z 再回车，POSIX 终端按 Ctrl+D；本轮自动验证采用关闭 stdin，未声称人工测试过这些按键。注释、引号、help 等业务语法均留到后续轮。
+`npm test` 使用 `vitest run`，执行一次退出。CLI 显示 `svg-editor 0.1 — type 'help' for commands` 与 `svg> `，逐行分词并执行五个已实现命令。help 列出全部作业命令，十四个后续命令标为 `[not implemented yet]`；调用时明确报错，不返回虚假成功。空行/整行注释静默跳过；单条错误后继续处理下一条，错误统一写 stderr 一行一个 `error:`。EOF 正常结束，不新增 exit/quit；自动验证关闭 stdin，未声称人工验证终端按键。
 
-固定开发依赖为 TypeScript 5.9.3、tsx 4.23.15、Vitest 5.0.5、Vite 8.3.5、@types/node 22.15.3，均通过 npm 安装，锁文件纳入待提交文件。版本依据与工具链理由见 [D-01](decisions.md#d-01-工具链与目录)。
+输入示例和 PowerShell UTF-8 回放命令见 [examples/README.md](../examples/README.md)。text 内容整体双引号包裹，支持中文、空格、空串及 `\"`/`\\`；未知转义和相邻引号片段报错，无行尾注释。六种 create 均支持尾部未引用的 `in <containerId>`。完整规则和暂定选择见 [D-07](decisions.md#d-07-第三轮分词和参数边界)。
+
+固定开发依赖为 TypeScript 5.9.3、tsx 4.23.15、Vitest 5.0.5、Vite 8.3.5、@types/node 22.15.3，均通过 npm 安装，锁文件已提交；第三轮未改依赖。版本依据与工具链理由见 [D-01](decisions.md#d-01-工具链与目录)。
 
 ## 2. 架构方案
 
@@ -31,7 +33,7 @@ node dist/bootstrap/main.js
 
 ![模块依赖图](architecture.svg)
 
-图源：[architecture.puml](architecture.puml)；兼容预览：[PNG](architecture.png)。实线为当前入口装配和测试依赖，虚线为规划依赖；领域层已实现但未接入入口。采用本地 Java 24.0.1 + PlantUML 1.2026.9 的 Smetana 布局，无需 Graphviz；工具 jar 放在被忽略的 `.tools/`，不作为项目依赖或提交内容。图源遵循 [PlantUML 官方命令行用法](https://plantuml.com/command-line)。
+图源：[architecture.puml](architecture.puml)；兼容预览：[PNG](architecture.png)。实线为当前装配/调用/测试依赖，虚线为历史/IO 相关规划依赖；第三轮已接通 CLI→application→domain。采用本地 Java 24.0.1 + PlantUML 1.2026.9 的 Smetana 布局，无需 Graphviz；工具 jar 放在被忽略的 `.tools/`，不作为项目依赖或提交内容。图源遵循 [PlantUML 官方命令行用法](https://plantuml.com/command-line)。
 
 ```powershell
 java '-Djava.awt.headless=true' -jar .tools/plantuml.jar -charset UTF-8 -tsvg doc/architecture.puml
@@ -42,26 +44,26 @@ java '-Djava.awt.headless=true' -jar .tools/plantuml.jar -charset UTF-8 -tpng do
 
 | 模块/目录 | 职责及计划中的类/接口 | 当前状态 |
 |---|---|---|
-| src/domain/ | Shape、六种具体类型、SvgDocument、ShapeFactory；TreeNode 封装结构，GeometricShape/Geometry 复用几何行为，Validation/DomainError/ShapeStyle 统一校验与契约 | 已实现 14 个类＋1 个样式接口，clone 保留类型和独立树/索引 |
-| src/application/ | Command 与具体 CreateCommand 等；CommandDispatcher、EditorSession、HistoryManager；DocumentStore/SvgCodec 外部能力接口 | 仅规划 |
-| src/cli/ | readline 终端外壳、Tokenizer、CommandParser；保留引号边界，格式化应用结果 | 已实现 CliShell 外壳；分词/解析/命令反馈未实现 |
+| src/domain/ | Shape、六种具体类型、SvgDocument、ShapeFactory；TreeNode/GeometricShape/Geometry/Validation/DomainError；中立 ShapeStyle/ShapeDescription/ShapeTypeDescription 契约 | 14 个行为类；第三轮增加多态展示描述和工厂参数元数据，保持既有树/克隆 API |
+| src/application/ | Command 抽象和 Init/Create/Tree/Show/HelpCommand；CommandDispatcher、ArgumentParser、EditorSession、TextPresenter、InputError 及只读传输接口 | 已实现；HistoryManager、DocumentStore/SvgCodec 接口仍为规划 |
+| src/cli/ | CliShell 的 readline 输入输出和统一错误前缀；Tokenizer 扫描并保留引号来源 | 已接通应用层；命令参数解析放到各 Command.parse，不再另建 CommandParser |
 | src/infrastructure/ | FileDocumentStore、XmlSvgCodec 实现接口；文件和 XML 库细节 | 仅规划，不提前选 XML 库 |
-| src/bootstrap/ | main.ts 装配输入输出和 CLI；以后装配会话、工厂、端口适配器 | 已实现最小装配 |
-| tests/ | 领域单元、结构/克隆/流程图集成、CLI 进程验收；未来加入应用/IO 测试 | 5 个测试文件共 74 项，其中领域 72 项、原启动测试 2 项 |
-| examples/ | §6/§6.1 版本 A 命令脚本和配套 SVG | 只有范围说明，业务样例待实现 |
-| doc/ | 正式提交文档、需求矩阵、决策与架构图 | 已同步第二轮实现范围与验证证据 |
+| src/bootstrap/ | main.ts 共享工厂装配会话、分发器和终端流 | 已实现第三轮装配；以后再加历史/IO 适配器 |
+| tests/ | 领域回归、分词/参数、会话事务/查询、CLI 真实进程及样例回放 | 8 个文件共 164 项，原有 72 项领域测试保留，旧启动测试随能力更新 |
+| examples/ | §6.1 版本 A 的创建/查询脚本 | round3.commands.txt 已真实回放；尚无 SVG 文件 |
+| doc/ | 正式文档、需求矩阵、决策与架构图 | 同步第三轮范围与证据；历史和 IO 不标完成 |
 
 与建议目录的唯一区别是暂不创建无代码目录；职责边界不变。所有已实现类独占同名文件；main.ts 是装配入口，不人为创建没有行为的 Main 类。结构/几何辅助类均实际被模型使用，不是占位框架。
 
 ### 2.2 设计模式选择与计划落地位置
 
-**Command（规划）**：应用层的 Command 抽象及具体命令封装意图和参数；CommandDispatcher 是唯一按命令名选择实现的入口。EditCommand 进入候选文档事务；DocumentCommand 通过端口读写并建立历史边界；QueryCommand 输出只读结果；UndoCommand/RedoCommand 委托 HistoryManager。**Command 尚未实现**，领域方法不是 CLI 命令。
+**Command（已落实五个命令）**：Command 定义 execute(session)，Init/Create/Tree/Show/HelpCommand 保存解析参数并执行用例。CommandDispatcher 的单个目录负责按名字构造命令及 help 元数据；命令自身 parse 负责参数。create 由 EditorSession 在候选文档上完成操作并提交，查询命令只获取冻结视图。尚未建立 EditCommand/DocumentCommand 分类或 HistoryManager；后续接历史时再按真实需要引入，不创建空类。
 
 **Composite（已落实）**：Shape 统一 move/scale/set/clone 与 attributes；Group 有序持有 Shape 子节点并多态递归，叶子通过 GeometricShape/不可变 Geometry 更新自身字段。SvgDocument 通过 TreeNode 的受保护操作统一维护结构与 ID 索引；外层无容器写数组接口。普通 g 的样式仅保留在自身，未来序列化通过 SVG 继承呈现；本轮不做渲染或 box。
 
-**Factory（已落实领域创建）**：ShapeFactory.create(type, id, attributes) 是唯一图形类型名分派点，构造六种具体类，未知类型包括 box 均抛 DomainError。工厂不读取 CLI token；未来参数 schema 和 XML 中立描述仍应进入这个单一分派点，显示/输出使用模型描述，不能在外层再 switch(tag)。未来将集中静态分派改成 bootstrap 装配的命令/ShapeProvider 注册表；本轮不实现动态注册机制。
+**Factory（已落实创建与参数来源）**：ShapeFactory 的同一个私有静态表同时保存各类型构造函数和中立参数描述；create/describe/descriptions 共用这一入口。ArgumentParser 按描述转换位置参数，help 按描述生成语法；domain 不读取 token。显示使用各具体类多态描述和 TextPresenter，不在外层再 switch(tag)。未来再将两处集中分派改成 bootstrap 装配的命令/ShapeProvider 注册协议；当前不提供动态注册。
 
-规划协作流程：CliShell → Tokenizer/CommandParser → CommandDispatcher → EditorSession/HistoryManager → 领域对象；IO 走应用接口。当前仅有外壳和可独立调用的领域层。快照方案见 [D-03、D-06](decisions.md)：已实现 clone 保留类行为、顺序、父子关系与独立索引，复制 O(N)；候选会话提交及 O(HN) 历史存储仍是设计（此处 H 为历史项数）。
+实际协作：CliShell → Tokenizer → CommandDispatcher → 具体 Command.parse/execute → EditorSession → 领域行为；查询经 Shape.describe/DocumentView → TextPresenter → 字符串行 → CliShell 输出。bootstrap 只装配。clone 保留类、顺序、父子关系和索引，复制 O(N)；create 的候选提交已实现，O(HN) 历史存储仍是 [D-03](decisions.md) 的设计（H 为历史项数）。
 
 ### 2.3 依赖方向规则及理由
 
@@ -74,7 +76,7 @@ java '-Djava.awt.headless=true' -jar .tools/plantuml.jar -charset UTF-8 -tpng do
 | bootstrap | 以上模块与进程流 | 只负责构造和连接，不放业务规则 |
 | tests | 被测模块及测试工具 | 生产代码不能反向依赖 tests |
 
-领域接口保持中立，不泄露 XML 库节点。当前唯一生产代码跨模块 import 为 bootstrap→cli，domain 只依赖自身的相对模块；tests 依赖领域模型。未引入终端、文件系统、XML 或外层依赖。未来违反方向即记为待处理项。
+领域接口保持中立，不泄露 token、终端或 XML 库节点。当前 bootstrap 装配 cli/application/domain；cli 只通过 application 调业务，application 依赖 domain，domain 仅引用自身相对模块。application/domain 均不打印、不导入 Node IO；查询跨层只返回值，不泄露可变文档。未来违反方向即记为待处理项。
 
 ### 2.4 变化点假设、预留与不预留
 
@@ -100,18 +102,24 @@ java '-Djava.awt.headless=true' -jar .tools/plantuml.jar -charset UTF-8 -tpng do
 | `shape.move/scale/set` | 多态更新、严格白名单、溢出失败无部分修改；Group 样式不覆写孩子 |
 | `shape.clone()` / `document.clone()` | 实际具体类独立副本；保持缺省样式、文本、顺序与新父链接/索引 |
 | `ShapeFactory.create(type, id, attributes)` | 中立命名属性，如 rect 使用 width/height，数值已是 number；拒绝 box/未知类型及未知字段 |
+| 第三轮 `ShapeFactory.describe(type)` / `descriptions()` | 冻结的参数名、属性映射、种类和可选标记，构造与描述同源 |
+| 第三轮 `Shape.describe()` | 冻结的 ID/类型、属性/样式和多态几何展示值，不含模型行为或父对象 |
 
 结构细节与数值选择见 [D-04–D-06](decisions.md)。`Group` 无公开 add/remove 子节点接口，文档树和索引只能通过文档一起维护；单独 Group 构造用于组装 detached 树，不替代应用层 group 命令。
 
+### 2.6 第三轮应用接口
+
+EditorSession.initialize(width,height) 先验证再替换；create(type,id,attributes,parentId?) 克隆、校验插入、准备结果后提交。readTree(id?) 与 readShape(id) 返回深度冻结的纯描述，活动文档没有公开 getter。CommandDispatcher.execute(tokens) 是唯一命令名入口，返回冻结的输出行；CliShell 只负责词法、流与错误前缀。历史、文件路径、默认路径及禁用位尚未进入会话；不能用当前五命令测试替代未来完整会话原子性验证。
+
 ## 3. 需求范围与待确认事项
 
-[需求矩阵](requirements.md) 用稳定编号关联章节、模块、验收场景与状态。第二轮增加 DOM 子需求记录领域验证；原命令/IO/历史需求仍待实现，不能把工厂创建当作 create 命令、把 clone 当作 undo/redo。纯领域树需求 STR-001 已验证。当前与规划的类明确区分见模块表。
+[需求矩阵](requirements.md) 用稳定编号关联章节、模块、验收场景与状态。保留第二轮 DOM 子需求；第三轮更新五命令及相关词法需求，并新增 R3 子项限定实际验收范围。create 的创建/插入已验证，但撤销单元仍由 HIS-003 单独记录；clone 和候选提交均不等于 undo/redo。完整 IO、其余命令、历史和最终交付仍待实现。
 
-四项主要歧义的暂定选择详见 [决策记录 A-01–A-04](decisions.md)：跨父 group 用最近共同祖先和原树顺序；成功文档操作清空两栈并禁用；外部 SVG 对不支持的语义明确拒绝、box 标记按普通 g 降级；成功显式 save 更新后续默认路径。它们均未获教师确认，尤其 transform 支持范围与原文背景示例有待核实。它们不阻塞本轮骨架，也不能当作验收标准已获批准。
+四项主要歧义的暂定选择详见 [决策记录 A-01–A-04](decisions.md)：跨父 group 用最近共同祖先和原树顺序；成功文档操作清空两栈并禁用；外部 SVG 对不支持的语义明确拒绝、box 标记按普通 g 降级；成功显式 save 更新后续默认路径。它们均未获教师确认，尤其 transform 支持范围与原文背景示例有待核实。它们不阻塞本轮创建/查询，也不能当作验收标准已获批准。
 
 ## 4. 过程记录
 
-以下只记本轮实际发生的工作，不编造用户确认或人工验收：
+以下按轮次保留实际工作，不编造用户确认或人工验收；1–10 为第一轮、11–17 为第二轮与认证同步、18 起为第三轮：
 
 1. 读取全部 phase_cli_1.md，检查工作区及父级可适用 AGENTS.md。初始只有作业文件，无代码、Git 仓库或项目约定。记录原文 SHA-256 为 `D8BBF9409A9596035F13AE809888C64E813EA76966B649911536DA44EABC7F76`，后续复核一致。
 2. 核实 Node/npm/Git 版本。默认 PowerShell 配置因 PATH 中 Java 路径引号触发 Conda 初始化错误，改用不加载 profile 的执行会话；未改系统配置。
@@ -130,18 +138,25 @@ java '-Djava.awt.headless=true' -jar .tools/plantuml.jar -charset UTF-8 -tpng do
 15. 编写与复核代码过程中发现初稿 clone 对每个根调用 insert 会重复复制索引，Group 构造也重复扫描后代；改成文档一次建索引，以及 Group 验证互异 detached 根，避免宽树/深树上的重复工作。另补尺寸溢出与 line 第二端点溢出测试；最终 74 项测试通过。此修正来自代码复杂度分析，没有声称做过性能基准。
 16. 实际运行 typecheck、test、build、开发 CLI 和编译入口，全部通过；CLI 对 init/help 仍明确报未实现。检查 domain import、类名和分派位置后更新领域子需求、决策、架构图及正式文档；未实现分词、命令执行或历史/IO，未做业务 SVG 浏览器预览。
 17. 用户回复 GitHub 认证已配置后，重新检查发现远程 main 已指向第二轮提交 `b930b61cb561aaf07d5154ba84d051b71c66b902`。fetch 后核实两轮提交均在远程祖先历史中；执行 `git push -u origin main` 返回 Everything up-to-date，并建立跟踪关系。仅更新文档中的当前同步状态，保留先前真实认证失败记录，不改写两轮提交、不新增业务功能。
+18. 第三轮读取用户附件、原文和现有代码/文档；工作区干净，本地 main 与 origin/main 同为 `a3beb436e6f02710da6a986b3799173768551ea0`。fetch 成功、无双方独有提交；基线 typecheck 和 74 项测试通过，未重置或覆盖工作区。
+19. 将 ShapeFactory 的集中 switch 改为同一个构造/参数描述表；新增各图形的多态几何展示值。增加逐字符 Tokenizer、五种 Command、唯一分发器、私有 EditorSession 与只读 TextPresenter；CLI/入口接入，未新增依赖或未来命令占位类。
+20. 首次类型检查发现按 `parent === document` 判断不能让 TypeScript 排除 SvgDocument，随后读取 type/id 报错。改为检查父级是否具有图形身份（`'id' in parent`），保持无图形 ID 的文档根语义；没有按六种类型再分派。修正后类型检查通过。
+21. 保留原领域测试与启动/EOF 验证目的，增加词法、六种参数、失败候选、冻结查询、错误恢复和 60 条快速输入用例。8 个文件共 164 项测试通过。真实样例回放验证八个图形的固定树、子树、文本、样式与父级；没有 move/undo/save 或 SVG 浏览器预览。
+22. 构建通过后分别用 npm run cli 和编译入口 stdin 回放样例。临时比对脚本最初搜索宽泛的 svg-editor，误匹配 npm 包名横幅；改成完整启动行定位，并将创建计数限定为图形摘要（排除画布 init）。修正后的核验通过：退出码均 0，stderr 均空，八次图形创建且业务输出一致。
+23. 源码 AST 检查确认 27 个类独占同名文件，实际 import 符合依赖方向；分支审查未发现外层图形类型分派。文档统计脚本初次正则漏掉 E2E 两行，修正编号匹配后验证 100 个唯一编号（47 已验证/53 未实现）、完整列/状态及六份 Markdown 的本地文件链接。原文 SHA-256 未变；本地重新渲染架构 SVG/PNG 并查看。
+24. 提交前再次 fetch 时遇到 GitHub 443 连接失败（约 21 秒后退出 128）；没有把网络失败当作远程为空，也没有改写历史或更换仓库。此前本轮起始 fetch 成功；最终推送与引用核验以交付回复中的实际结果为准。
 
 ## 5. 一致性自查
 
 | 检查 | 规划架构 | 当前骨架实际情况 | 结论/后续 |
 |---|---|---|---|
-| 模块划分 | domain/application/cli/infrastructure/bootstrap | 已有 domain/cli/bootstrap；application/infrastructure 留到需要时 | 符合分阶段方案；增加的内部结构/几何类见 D-04–06 |
-| 类封装 | 一类一文件、图形类多态行为 | 领域 14 类均同名文件，继承 TreeNode/Shape/GeometricShape；状态为 #private | 领域实现符合；不以此代替未来应用层审查 |
-| 模式 | Command/Composite/Factory | Composite 与集中 Factory 已实现并测试；Command 仍规划 | 不把领域方法称作命令对象 |
-| 依赖方向 | 内层不依赖外层；bootstrap 装配 | domain import 均在 domain 内，无 node/IO/XML/CLI 依赖；入口仍只装配外壳 | 当前符合；这是源码审查，不声称已有永久自动守卫 |
-| 名字分派 | 命令分发/图形工厂两处 | 唯一图形类型 switch 在 ShapeFactory；Shape 中另有属性白名单 switch | 属性校验不是按图形类型分派；CommandDispatcher 尚未实现 |
-| 文档与状态 | 每轮同步更新 | 追加已验证 DOM 子项，完整 CLI/IO/历史项保持未实现 | 工厂不等于 create；clone 不等于 undo/redo |
-| Git/交付 | 分步提交、远程、最终标签 | 两轮独立提交均已核实存在于远程 main 历史，本地 main 跟踪 origin/main | 认证阻碍已解除；持续保留阶段历史，不强推、不重写、不打 final |
+| 模块划分 | 五模块架构 | domain/application/cli/bootstrap 已有代码；infrastructure 仍规划 | 参数 parse 在具体命令内，调整理由见 D-08 |
+| 类封装 | 一类一文件、图形多态行为 | 领域状态私有，应用会话私有；命令参数私有；展示与 token 接口为只读值 | 传输描述不是核心模型，领域行为仍由类承担 |
+| 模式 | Command/Composite/Factory | 五个真实 Command、六图形 Composite、集中 Factory 已实现 | 历史命令和 IO 未实现 |
+| 依赖方向 | 内层不依赖外层；bootstrap 装配 | cli→application→domain，domain 无外层/Node IO/XML；应用不打印 | 当前源码审查符合，未安装永久架构守卫 |
+| 名字分派 | 命令分发/图形工厂两处 | CommandDispatcher 单目录、ShapeFactory 单构造/描述表；展示调用多态描述 | 属性和数据种类校验不等于图形类型分派；无第二份类型表 |
+| 文档与状态 | 每轮同步更新 | 五命令及 R3 子项更新，完整 IO/历史项保持未实现 | 候选提交不等于历史；领域方法不代表对应 CLI 已完成 |
+| Git/交付 | 分步提交、远程、最终标签 | 第三轮以已同步的 a3beb43 为基线；保留前两轮开发提交 | 最终提交/推送实况见交付回复及 Git 记录；不强推、不重写、不打 final |
 
 ## 6. 质量保证手段
 
@@ -192,21 +207,38 @@ java '-Djava.awt.headless=true' -jar .tools/plantuml.jar -charset UTF-8 -tpng do
 
 测试按行为分布：Shapes.test.ts 验证类型/属性/几何/原子性/Composite；SvgDocument.test.ts 验证树/索引/归属/顺序；Clone.test.ts 验证真实类和双向隔离；Flowchart.test.ts 构造 §6.1 版本 A，并确认只移动 node2 的矩形与文字。未使用同一套实现计算结果当作预期值，也未增加覆盖率工具或声称测得覆盖率。
 
+### 第三轮实际执行
+
+| 检查/命令 | 结果及范围 |
+|---|---|
+| 基线 `npm run typecheck` / `npm test` | 退出码 0，原 5 文件 74 项通过 |
+| 实现后 `npm run typecheck` | 首次发现父级联合类型收窄错误，修正后退出码 0 |
+| 实现后 `npm test` | 退出码 0，8 文件 164 项通过，执行一次退出；未报告覆盖率百分比 |
+| `npm run build` | 退出码 0，生产 TypeScript 编译成功 |
+| `npm run cli` 与 `node dist/bootstrap/main.js` 的 stdin 文件回放 | 两者退出码 0、stderr 为空；八个图形创建，业务输出一致；固定预期树另由进程测试验证 |
+| 错误恢复与 EOF 进程测试 | 无文档/词法/ID 错误后继续，CRLF 与末行无换行成功，60 条 create 按顺序处理完 |
+| TypeScript AST/import/分支审查 | 27 个类一类一文件且同名，cli→application→domain；domain 仅自身导入；两处名称表，无显示类型分支 |
+| 文档/锁文件检查脚本 | 100 个唯一需求编号、47 已验证/53 未实现；六份 Markdown 共 24 个本地文件链接目标存在（未校验锚点）；依赖声明与锁文件一致 |
+| PlantUML `-checkonly`、SVG/PNG 生成和图片查看 | 本地执行成功，已查看第三轮架构图；历史/IO 与当前实现区分 |
+| 原文哈希及工作区 `git diff --check` | 原文 SHA-256 与第一轮相同；本轮 diff 无空白错误 |
+
+词法与应用测试采用固定数值/输出预期；会话候选测试额外观察 clone 的原/副本引用，确认失败保留活动引用、成功仅提交独立副本。读取旧视图后再编辑不会改变旧视图。源码/文档/架构图与暂存复核结果随本轮交付记录。
+
 ### 后续计划（尚未执行）
 
 - 持续扩展领域回归测试，当前核心行为已覆盖；以后新增语义时同步补测试。
-- 参数化命令测试覆盖全部语法、白名单及规范错误；先做明确边界再扩展正常流程。
+- 扩展参数化测试至其余命令语法、白名单及规范错误；本轮仅覆盖五个命令。
 - 事务测试对比失败前后的完整会话：图形、当前文档、路径、两栈及历史禁用位；故障注入验证读写失败和 redo 保留。
 - 临时目录集成测试覆盖 SVG 编码、补 ID 冲突、保存读回和兼容边界；XML 库选定后增加恶意/畸形输入测试。
 - 按 §6 与 §6.1 版本 A 回放实际命令，保存真实样例，再在浏览器打开 SVG 记录视觉结果。
 - 最终按 requirements.md 逐项填验证证据，审查面向对象、两处分派和依赖方向，持续维护 Git 提交历史；全部完成后才处理 final 标签。
 
-本轮验证的是领域行为与外壳，不是完整 CLI 业务。没有覆盖率数字或人工浏览器验收结果，不以当前测试替代课程最终验收。
+本轮验证的是既有领域行为与五个 CLI 命令，不是完整作业。没有覆盖率数字或人工浏览器验收结果，不以当前测试替代课程最终验收。
 
-## 7. 第三轮接入注意事项（仅计划）
+## 7. 第四轮接入准备（仅计划）
 
-init 可通过 new SvgDocument 建立应用会话中的当前文档；create 应由应用 Command 使用 ShapeFactory.create 与 document.insert，数值转换和引号保留属于后续解析层；类型参数顺序/schema 从唯一工厂分派点获得，不能在 CLI 再复制类型分支。默认/显式样式必须保持区别，父容器通过 insert 校验，错误前缀由 CLI 统一加。
+move/scale/set/delete 的新命令应在 CommandDispatcher 增加实际 parse，复用 ArgumentParser 及领域 move/scale/set/remove，在候选文档中查找、修改。继续通过会话受控入口执行，不向命令或 CLI 公开活动文档。类型属性白名单留在领域内；set 数值转换需中立属性契约，不能新增按图形名分派表。先覆盖无文档、坏参数、溢出与容器递归等失败原子性。
 
-tree/show 可读取 roots、children、id/type、attributes 和 parent；只遍历/格式化只读视图，不修改字段。根是 SvgDocument，不存在用户指定的根图形 ID。若要类型专用摘要，添加多态描述行为，不能为每种图形写外部分支链。help 与参数语法说明由后续应用/解析契约统一提供。当前均未接入。
+提取会话的通用编辑事务，在成功提交点同时更换文档和历史状态；每命令保留 before/after 的真实类快照和命令意图，恰好一个撤销单元。undo/redo 使用独立克隆恢复，不能把历史快照直接当活动文档。失败编辑不新增历史、不清 redo；成功新编辑清 redo。init 要接入 A-02 的历史屏障，查询保持两栈与禁用位不变。read/save/canvas 的屏障留给相应实现轮。
 
-未来会话事务用 document.clone 准备候选，但本轮 clone 没有处理路径、历史或禁用位；应用层仍需独立保证失败命令不改会话、成功编辑一个撤销单元和历史屏障。第三轮即使只贯通部分命令，也不能将未实现的 undo/redo 当成完成。
+后续状态变多时应整体准备再提交，避免文档已提交而历史记录失败。先以现有 clone、冻结查询和固定文本输出为回归基线，补“undo→失败编辑→redo”“undo→成功编辑清 redo”“init→失败编辑仍禁用→成功编辑解禁”。第三轮不提前实现这些能力。
