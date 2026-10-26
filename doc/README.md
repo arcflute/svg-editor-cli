@@ -6,7 +6,7 @@
 - 作业基线：[phase_cli_1.md](../phase_cli_1.md)，保持原文不变。
 - Git 仓库地址：[arcflute/svg-editor-cli](https://github.com/arcflute/svg-editor-cli)。本项目独立仓库的 origin 为 `https://github.com/arcflute/svg-editor-cli.git`，目标分支 main。
 - 当前进度：第二轮——六类型领域模型、文档树与 ID/结构约束、深拷贝及领域测试已实现。**分词、CLI 业务命令、Command 执行器、SVG 读写与历史仍未实现**；领域层尚未接入 CLI。
-- 第一轮独立提交：`c6b5e137ccd1fa8fb760844efb87d17d08660144`。其推送因本地 HTTPS Git 认证缺失失败；两轮本地成果待远程同步，不能把配置 origin 当成推送成功。
+- 第一轮独立提交：`c6b5e137ccd1fa8fb760844efb87d17d08660144`；第二轮独立提交：`b930b61cb561aaf07d5154ba84d051b71c66b902`。此前推送受 HTTPS Git 认证阻碍，用户完成认证后已确认两轮均在远程 main 历史中，且本地 main 已跟踪 origin/main。
 - 记录日期：2026-10-26（Asia/Shanghai）。作者姓名、学号、课程截止时间尚未提供，不代填。
 - 实际开发环境：Windows PowerShell；Node.js v22.15.0；npm 10.9.2；Git 2.39.1.windows.1。第一轮结束时身份缺失；开始第二轮前，已按用户提供的署名和邮箱配置项目级 Git 身份，不修改全局配置。
 
@@ -129,6 +129,7 @@ java '-Djava.awt.headless=true' -jar .tools/plantuml.jar -charset UTF-8 -tpng do
 14. 创建领域测试，覆盖全部六类型、失败输入、有限数溢出、树约束、克隆隔离及作业流程图。第一批 typecheck 与 72 项测试全部通过（含既有 2 项启动测试），没有伪造测试失败后修复的经历。
 15. 编写与复核代码过程中发现初稿 clone 对每个根调用 insert 会重复复制索引，Group 构造也重复扫描后代；改成文档一次建索引，以及 Group 验证互异 detached 根，避免宽树/深树上的重复工作。另补尺寸溢出与 line 第二端点溢出测试；最终 74 项测试通过。此修正来自代码复杂度分析，没有声称做过性能基准。
 16. 实际运行 typecheck、test、build、开发 CLI 和编译入口，全部通过；CLI 对 init/help 仍明确报未实现。检查 domain import、类名和分派位置后更新领域子需求、决策、架构图及正式文档；未实现分词、命令执行或历史/IO，未做业务 SVG 浏览器预览。
+17. 用户回复 GitHub 认证已配置后，重新检查发现远程 main 已指向第二轮提交 `b930b61cb561aaf07d5154ba84d051b71c66b902`。fetch 后核实两轮提交均在远程祖先历史中；执行 `git push -u origin main` 返回 Everything up-to-date，并建立跟踪关系。仅更新文档中的当前同步状态，保留先前真实认证失败记录，不改写两轮提交、不新增业务功能。
 
 ## 5. 一致性自查
 
@@ -140,7 +141,7 @@ java '-Djava.awt.headless=true' -jar .tools/plantuml.jar -charset UTF-8 -tpng do
 | 依赖方向 | 内层不依赖外层；bootstrap 装配 | domain import 均在 domain 内，无 node/IO/XML/CLI 依赖；入口仍只装配外壳 | 当前符合；这是源码审查，不声称已有永久自动守卫 |
 | 名字分派 | 命令分发/图形工厂两处 | 唯一图形类型 switch 在 ShapeFactory；Shape 中另有属性白名单 switch | 属性校验不是按图形类型分派；CommandDispatcher 尚未实现 |
 | 文档与状态 | 每轮同步更新 | 追加已验证 DOM 子项，完整 CLI/IO/历史项保持未实现 | 工厂不等于 create；clone 不等于 undo/redo |
-| Git/交付 | 分步提交、远程、最终标签 | 第一轮已独立提交，origin/身份已配置；推送受认证阻碍 | 第二轮另作提交，不强推、不重写、不打 final |
+| Git/交付 | 分步提交、远程、最终标签 | 两轮独立提交均已核实存在于远程 main 历史，本地 main 跟踪 origin/main | 认证阻碍已解除；持续保留阶段历史，不强推、不重写、不打 final |
 
 ## 6. 质量保证手段
 
@@ -184,8 +185,10 @@ java '-Djava.awt.headless=true' -jar .tools/plantuml.jar -charset UTF-8 -tpng do
 | TypeScript AST 检查脚本 | 14 个领域类均与文件同名且一类一文件；导入仅 ./；仅有工厂类型 switch 和公共属性 switch |
 | 文档/锁文件检查脚本 | 6 份 Markdown 本地文件链接目标存在（不含锚点校验）；90 个唯一需求编号、25 已验证/65 未实现，列与状态完整；锁文件一致 |
 | Git 最终暂存审查 | 26 个第二轮相关文件，diff --cached --check 通过；node_modules/dist/.tools 忽略；原文、CLI、原启动测试、package 配置/锁文件与第一轮提交无差异 |
+| 认证完成后的 ls-remote / fetch / merge-base --is-ancestor | 远程 main 与本地第二轮提交一致，两轮开发提交均为远程 main 的祖先 |
+| 认证完成后的 `git push -u origin main` | 退出码 0、Everything up-to-date，已建立 main → origin/main 跟踪；先前失败记录保留为真实过程 |
 
-已完成第二轮提交前检查。提交与推送沿用用户明确授权，认证失败时保留本地两轮提交，不合并、不改提交时间、不强推；最终哈希和远程核验结果以本轮交付回复及 Git 记录为准。
+第二轮开发与验证已经完成，两轮提交均已远程同步。认证完成后的补充工作仅检查 Git 状态、核实远程历史和更新这些文档，没有修改代码或依赖，因此未重复运行已通过的 74 项测试。文档同步另作提交，不合并、不改提交时间、不强推；最新文档提交与远程核验结果见交付回复及 Git 记录。
 
 测试按行为分布：Shapes.test.ts 验证类型/属性/几何/原子性/Composite；SvgDocument.test.ts 验证树/索引/归属/顺序；Clone.test.ts 验证真实类和双向隔离；Flowchart.test.ts 构造 §6.1 版本 A，并确认只移动 node2 的矩形与文字。未使用同一套实现计算结果当作预期值，也未增加覆盖率工具或声称测得覆盖率。
 
