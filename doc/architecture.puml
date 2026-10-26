@@ -1,6 +1,6 @@
 @startuml
 !pragma layout smetana
-title SVG CLI - planned package dependencies (round 1)
+title SVG CLI - implemented domain and shell (round 2)
 skinparam componentStyle rectangle
 skinparam shadowing false
 
@@ -14,11 +14,14 @@ package "src/application (planned)" as Application {
   component "EditorSession / CommandDispatcher\nCommand objects / HistoryManager" as Commands
   component "DocumentStore\nSvgCodec" as Ports <<interfaces>>
 }
-package "src/domain (planned)" as Domain {
-  component "SvgDocument / Shape\nGroup / six built-in shapes\nShapeFactory" as Model
+package "src/domain (implemented)" as Domain {
+  component "SvgDocument / TreeNode\nShape / GeometricShape / Geometry\nRect / Circle / Ellipse / Line / Text / Group\nShapeFactory / Validation / DomainError" as Model
 }
 package "src/infrastructure (planned)" as Infrastructure {
   component "FileDocumentStore\nXmlSvgCodec" as Adapters
+}
+package "tests" as Tests {
+  component "Domain behavior / tree / clone / flowchart\nCLI process smoke tests" as Checks
 }
 
 Main --> Shell : constructs
@@ -29,10 +32,14 @@ CLI ..> Application : parsed requests
 Application ..> Domain : behavior / snapshots
 Adapters ..|> Ports : implements
 Infrastructure ..> Domain : construct / traverse
+Checks --> Model : verified behavior
+Checks --> Main : starts child process
 
 note bottom of Domain
   No dependency on outer packages, Node IO or XML.
-  Polymorphic behavior; ordered Composite tree.
+  Polymorphic geometry; ordered Composite tree.
+  Only SvgDocument exposes structure mutation.
+  clone() preserves instances, links and ID index.
 end note
 note bottom of Commands
   Only two name dispatch locations:
@@ -40,8 +47,8 @@ note bottom of Commands
   Future: registered command / ShapeProvider factories.
 end note
 legend bottom
-  Solid arrow: current main -> CliShell
+  Solid arrows: implemented dependencies / tests
   Dotted arrows: planned source dependencies / implementations
-  Tests are external consumers, never production dependencies.
+  Domain is not connected to the CLI yet.
 endlegend
 @enduml
