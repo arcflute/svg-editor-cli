@@ -1,6 +1,6 @@
 @startuml
 !pragma layout smetana
-title SVG CLI - complete CLI and SVG IO (part 2)
+title SVG CLI - Phase 1 - implemented modules and dependencies
 skinparam componentStyle rectangle
 skinparam shadowing false
 
@@ -18,7 +18,7 @@ package "src/application" as Application {
   component "DocumentStore / SvgCodec\napplication-owned ports" as Ports
 }
 package "src/domain (implemented)" as Domain {
-  component "SvgDocument / TreeNode\nShape / GeometricShape / Geometry\nRect / Circle / Ellipse / Line / Text / Group\nShapeFactory (constructors + parameter metadata)\nShapeDescription / Validation / DomainError" as Model
+  component "SvgDocument / TreeNode\nShape / GeometricShape / Geometry\nRect / Circle / Ellipse / Line / Text / Group\nShapeFactory (constructors + parameter metadata)\nShapeDescription / ShapeElement / Validation / DomainError" as Model
 }
 package "src/infrastructure" as Infrastructure {
   component "FileDocumentStore (atomic replacement)\nXmlSvgCodec (saxes parser)" as Adapters

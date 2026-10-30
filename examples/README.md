@@ -48,4 +48,25 @@ svg> svg (800x600)
     └── line#arrow1  (280,130) -> (520,130) stroke=black
 ```
 
-成功 init 清空并禁用历史，下一次成功编辑解禁；失败编辑保留 redo，成功新编辑清 redo。set 的文本值允许单个未引用词；空串、空格仍需引号。create text 的 content 保留第三轮引用要求。还没有保存读回及浏览器验证；box 留到插件化阶段。
+成功 init 清空并禁用历史，下一次成功编辑解禁；失败编辑保留 redo，成功新编辑清 redo。set 的文本值允许单个未引用词；空串、空格仍需引号。create text 的 content 保留第三轮引用要求。该历史脚本不写文件；完整保存/读回与浏览器验证已补在下面，box 留到插件化阶段。
+
+## 完整课程场景与实际 SVG
+
+[transcript.commands.txt](transcript.commands.txt) 对应 §6，读取 [other.svg](other.svg)，生成 [demo.svg](demo.svg)。两条预期错误是祖先后代混选和 save 后禁用 undo，进程仍正常退出。ID 名为 box 的对象实际是 rect，并未实现 box 类型。
+
+[flowchart.commands.txt](flowchart.commands.txt) 对应 §6.1 版本 A，生成 [flowchart.svg](flowchart.svg)：八个对象、整体移动 node2、undo、修改内容和保存。[structure.commands.txt](structure.commands.txt) 单独演示跨父分组/解组与图层操作。
+
+这两个文件已由真实 CLI 生成，读回测试和 Edge 156 无头截图查看均通过；截图与环境记录见 [验收记录](../doc/acceptance.md)。不是人工绘制 SVG，不声称教师已验收。
+
+在项目根构建后，使用 examples 作为工作目录（脚本中的文件路径相对当前目录）：
+
+```powershell
+npm run build
+$OutputEncoding = [System.Text.UTF8Encoding]::new()
+Push-Location examples
+Get-Content -Raw -Encoding UTF8 transcript.commands.txt | node ../dist/bootstrap/main.js
+Get-Content -Raw -Encoding UTF8 flowchart.commands.txt | node ../dist/bootstrap/main.js
+Pop-Location
+```
+
+这会重建 examples/demo.svg 与 flowchart.svg。开发入口对应 `node --import ../node_modules/tsx/dist/loader.mjs ../src/bootstrap/main.ts`（在 examples 内执行）。交互式 `npm run cli` 默认以项目根运行，文件参数需使用如 `read examples/other.svg` 的路径。

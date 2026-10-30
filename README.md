@@ -1,6 +1,6 @@
 # SVG 编辑器 CLI
 
-《高级软件开发技术》个人 Lab。现已实现 Phase 1 的 19 条 CLI 命令：六种图形、嵌套容器、编辑/分组/图层、撤销重做、画布及 SVG 文件读写。最终场景和浏览器验收正在进行；box 与动态插件属于后续阶段。
+《高级软件开发技术》个人 Lab。现已实现 Phase 1 的 19 条 CLI 命令：六种图形、嵌套容器、编辑/分组/图层、撤销重做、画布及 SVG 文件读写。完整作业场景、393 项测试与 Edge 无头浏览器渲染已通过；box 与动态插件属于后续阶段。
 
 需要 Node.js 22（>=22.15.0）与 npm 10+。
 
@@ -34,6 +34,6 @@ redo
 - [设计决策与待确认事项](doc/decisions.md)
 - [原始作业要求](phase_cli_1.md)
 
-Git 仓库：[arcflute/svg-editor-cli](https://github.com/arcflute/svg-editor-cli)，目标分支 `main`。截至本轮开始，第四轮全部提交（最新 `06967aa`）已同步。接下来三部分各自完成后提交并推送，见 [开发记录](doc/round5.md)。最终验收完成后再打 `final` 标签。
+Git 仓库：[arcflute/svg-editor-cli](https://github.com/arcflute/svg-editor-cli)，目标分支 `main`。本次分组/图层 `ab81c87` 与 SVG IO `0fa46d9` 已分别推送；最终验收另作提交，见 [开发记录](doc/round5.md) 和 [验收证据](doc/acceptance.md)。最终提交创建后再打 `final` 标签。
 
 文件示例：`save "drawing.svg"`、`read "drawing.svg"`、`canvas 1024 768`。无参数 save 使用最近成功读入/保存路径；init 清除路径。init/read/save/修改 canvas 成功清空并禁用历史，canvas 查询不改变历史。外部 SVG 兼容范围见正式文档与 A-03：不静默忽略 transform 或未知属性。

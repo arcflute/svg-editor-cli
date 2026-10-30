@@ -1,6 +1,6 @@
 # 设计决策与待确认语义
 
-更新日期：2026-10-30（Asia/Shanghai）。依据：[作业原文](../phase_cli_1.md)及用户分轮任务。第一轮方案、第二轮领域、第三轮创建/查询之后，第四轮已接入基础编辑与快照历史；分组/IO 仍待实现。以下“推荐/暂定”均为本项目设计判断，**没有教师确认**。若后续确认不同，先更新需求与测试，再实现或调整。
+更新日期：2026-10-30（Asia/Shanghai）。依据：[作业原文](../phase_cli_1.md)及用户分轮任务。第一轮方案、第二轮领域、第三轮创建/查询之后，第四轮已接入基础编辑与快照历史；后续三部分已完成分组/图层、画布和 SVG IO，最终验收见 acceptance.md。以下“推荐/暂定”均为本项目设计判断，**没有教师确认**。若后续确认不同，先更新需求与测试，再实现或调整。
 
 ## R：作业明文要求与本轮额外约束
 
@@ -26,23 +26,23 @@
 
 精确锁定 TypeScript 5.9.3、tsx 4.23.15、Vitest 5.0.5、Vite 8.3.5、@types/node 22.15.3；package-lock.json 锁定传递依赖。TS 采用已成熟的 5.9 系列，暂不引入 7.x 编译器迁移；Node 类型与本机 22.15 系列相配。npm registry 元数据确认 Vitest 需要 Node `^22.12.0 || ^24.0.0 || >=26.0.0`，Vite 需要 `^20.19.0 || >=22.12.0`，本机满足两者；Vite 显式列为 Vitest 的 peer 依赖。项目 engines 暂限定已选择的 Node 22（>=22.15），不声称其他主版本已验证。[Vitest 官方迁移说明](https://main.vitest.dev/guide/migration/)亦列出了 5.0 的 Node 下限。
 
-不提前安装 XML 库，也不为历史引入第三方框架。采用用户建议的五个 src 模块；第一轮只有 cli/bootstrap，第二轮新增 domain，第三轮新增 application，infrastructure 留到 IO 轮。examples 第三、四轮加入真实命令脚本。第二至四轮均没有修改依赖或锁文件。
+第一轮不提前安装 XML 库；第二部分 IO 已加入 saxes，见 D-12。历史不依赖第三方框架。采用用户建议的五个 src 模块；第一轮只有 cli/bootstrap，第二轮新增 domain，第三轮新增 application，infrastructure 留到 IO 轮。examples 第三、四轮加入真实命令脚本。第二至四轮均没有修改依赖或锁文件。
 
 ### D-02 对象封装和分派边界
 
-Shape 抽象封装 ID 与可选公共样式；第二轮已落实 move/scale/set、clone 和只读 attributes。Rect/Circle/Ellipse/Line/Text 通过 GeometricShape 与不可变 Geometry 封装各自字段；Group 递归调用同一行为；SvgDocument 管理根、全局 ID 索引与结构操作。SVG 中立元素描述留到 IO 轮，不提前实现。外层仅调用方法或只读视图，不持有可变子数组/字段写权限。ID 在对象生命周期内不可改写。
+Shape 抽象封装 ID 与可选公共样式；第二轮已落实 move/scale/set、clone 和只读 attributes。Rect/Circle/Ellipse/Line/Text 通过 GeometricShape 与不可变 Geometry 封装各自字段；Group 递归调用同一行为；SvgDocument 管理根、全局 ID 索引与结构操作。SVG 中立 ShapeElement 已在 IO 部分实现（D-12）。外层仅调用方法或只读视图，不持有可变子数组/字段写权限。ID 在对象生命周期内不可改写。
 
 应用层 CommandDispatcher 是唯一“命令名→命令”的分派点。CLI 分词保留 `{value, quoted}` 等词法信息，解析只负责通用结构；命令特定参数规则随命令实现描述。create 的类型参数解释委托给 domain/ShapeFactory 的唯一“类型名→构造逻辑”映射。读入 SVG 也进入同一个 ShapeFactory，**不在 XML codec 再开一套标签分派表**。
 
-ShapeFactory 接收中立的命名属性对象，不读取 CLI token；第三轮在唯一静态定义中同时提供构造器与位置参数描述，详见 D-08。XML 库对象未来先转成不带行为的传输描述，再通过同一工厂构造。描述只用于边界，不是核心模型。通用遍历交给 Composite；显示使用多态只读描述；写出使用未来的中立元素描述，均不得重复 switch(tag)。根 svg 校验属于文件格式边界，不用于重复分派六种图形类型。
+ShapeFactory 接收中立的命名属性对象，不读取 CLI token；第三轮在唯一静态定义中同时提供构造器与位置参数描述，详见 D-08。XML 库对象先转成不带行为的传输描述，再通过同一工厂构造。描述只用于边界，不是核心模型。通用遍历交给 Composite；显示使用多态只读描述；写出使用中立元素描述，均不得重复 switch(tag)。根 svg 校验属于文件格式边界，不用于重复分派六种图形类型。
 
 **待重构点**：初期两处集中静态映射允许存在；命令增加或进入插件阶段时改成启动装配的命令构造注册表与 ShapeProvider 注册表，保持唯一查询点。当前不写插件加载器、版本协议、热加载或 box 模板。
 
 ### D-03 命令对象与文档快照
 
-第二轮落实图形/文档 clone，第三轮落实候选提交；第四轮已实现以下前后快照、两栈及 init 屏障，见 D-10。read/save/canvas 的屏障与路径/文件原子性仍为规划。下文 deepClone 指概念，实际 API 统一为 clone。
+第二轮落实图形/文档 clone，第三轮落实候选提交；第四轮已实现以下前后快照、两栈及 init 屏障，见 D-10。read/save/canvas 的屏障与路径/文件原子性已在 D-12 实现并测试。下文 deepClone 指概念，实际 API 统一为 clone。
 
-每个成功编辑的历史项保存命令对象、before/after 独立文档快照和成功输出。Command 统一入口，五个编辑类继承 EditCommand；Init 和查询/历史命令直接实现各自行为。未创建无用途的 DocumentCommand/QueryCommand 中间类，不另按名字判断类别。
+每个成功编辑的历史项保存命令对象、before/after 独立文档快照和成功输出。Command 统一入口，十个编辑类继承 EditCommand；Init 和查询/历史命令直接实现各自行为。未创建无用途的 DocumentCommand/QueryCommand 中间类，不另按名字判断类别。
 
 文档快照由领域对象的 deepClone/专用复制构造完成：
 
@@ -68,7 +68,7 @@ Group 构造器接受 detached 子树，复制输入数组、验证节点未挂�
 
 roots/children/style/attributes 返回冻结副本，元素仍是带行为的领域对象。调用对象 move/set 是合法领域行为；修改数组、父级、ID、属性视图无法绕过封装。索引不对外暴露。shape.parent 返回 Group、SvgDocument 或 null；根级图形父级就是文档，detached 子树根的 parent 为 null，后代保留内部父链接。
 
-insert 的 position 是目标父节点当前的插入下标，范围 0..length，默认追加；reparent 的 position 是**从旧父级移除后的最终目标下标**，同父也按此规则计算，默认追加。非法位置先报错，不先摘出节点。跨父重挂接保持子树内部顺序和几何原值；§3 的 group/ungroup/addto 等命令仍未实现，A-01 的跨父分组算法也未实现。
+insert 的 position 是目标父节点当前的插入下标，范围 0..length，默认追加；reparent 的 position 是**从旧父级移除后的最终目标下标**，同父也按此规则计算，默认追加。非法位置先报错，不先摘出节点。跨父重挂接保持子树内部顺序和几何原值；后续已通过 groupNodes/ungroupNode 落实 A-01，见 D-11。
 
 ### D-05 第二轮数值、属性与原子变换
 
@@ -174,7 +174,7 @@ HistoryEntry 对 before/after 各自 clone；恢复再 clone。命令对象用�
 
 暂定 init 单个参数为宽度、高度默认 600；canvas 修改要求恰好两个数。宽高为正有限数；图形宽高/半径/stroke-width 非负有限数；坐标允许负数与浮点；scale 必须正有限数。不接受 NaN/Infinity。数值合法范围、单参数 init 原文未详述。
 
-help 无需文档（§6 的启动提示支持这个用法），其余依赖文档的命令才执行无文档守卫。空行跳过；去除行首空白后以 # 开头视为整行注释，不支持行尾注释。分词保留引号来源；`in` 子句仅识别尾部未引用 token。第三轮已落实这些选择，转义和相邻片段规则见 D-07；其余尚未实现命令的历史与 IO 行为仍待后续验证。
+help 无需文档（§6 的启动提示支持这个用法），其余依赖文档的命令才执行无文档守卫。空行跳过；去除行首空白后以 # 开头视为整行注释，不支持行尾注释。分词保留引号来源；`in` 子句仅识别尾部未引用 token。第三轮已落实这些选择，转义和相邻片段规则见 D-07；后续已完成全部命令历史/IO 验证。
 
 g 的 set 公共属性只改组自身，借 SVG 继承呈现，不手工改写后代；scale 只处理几何，不缩放 stroke-width 或文本字形大小（text 白名单没有 font-size）。front 对应数组末端（最后绘制），back 对应首端。重复 group 参数拒绝；选一个节点的 group 允许；已在最前/最后的成功顺序命令仍计一个撤销单元、仍清空 redo，遵守“一条成功编辑一个单元”。普通空栈报 `error: nothing to undo` / `error: nothing to redo`，禁用标志优先；show 根级父标签用 `parent=svg`。上述未在原文明定的输出/范围均待测试或反馈校准。
 
@@ -184,13 +184,13 @@ g 的 set 公共属性只改组自身，借 SVG 继承呈现，不手工改写�
 |---|---|---|---|
 | F-01 | 新图形与 box/ShapeProvider | Shape 多态、单一 ShapeFactory、Composite、只读展示/序列化描述 | 不实现 box、插件注册 API、动态加载/卸载；本轮没有真实插件消费者 |
 | F-02 | 命令增多、CLI/agent/鼠标多通道 | Command 参数对象与应用会话独立于 readline；统一按 ID 定位 | 不实现 GUI、HTTP、结构路径寻址；原文只要求 CLI |
-| F-03 | 外部格式、文件来源改变 | application 的 DocumentStore/SvgCodec 接口，domain 无 XML/IO 依赖 | 本轮不定 XML 库、不加通用插件式存储框架；按实际 IO 需求选 |
+| F-03 | 外部格式、文件来源改变 | application 的 DocumentStore/SvgCodec 接口，domain 无 XML/IO 依赖 | 已采用 saxes 与两个适配器（D-12）；不加通用存储插件框架 |
 | F-04 | 大文档与长历史 | 领域深拷贝协议、HistoryManager 集中策略，事务提交边界 | 不做增量历史、持久历史或自动合并；等性能证据 |
 | F-05 | transform/更多 SVG 特性 | A-03 明确兼容边界与回归用例入口 | 不预先写矩阵系统或任意 XML 透传；避免坐标和模型行为失真 |
 
 ## 决策修订方式
 
-保留编号。记录新的依据、选择变化与受影响需求/测试，不把假设改写成原文。当前记录由本轮实际分析形成，尚无教师澄清、用户逐项确认或人工浏览器验收。
+保留编号。记录新的依据、选择变化与受影响需求/测试，不把假设改写成原文。记录按真实开发逐步修订；尚无教师澄清或逐项语义确认。最终浏览器检查是用户授权的 Edge 无头渲染与截图查看，不称人工交互验收。
 
 ## D-11 分组与图层实际落地（2026-10-30）
 
