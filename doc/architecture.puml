@@ -1,6 +1,6 @@
 @startuml
 !pragma layout smetana
-title SVG CLI - grouping and z-order (part 1)
+title SVG CLI - complete CLI and SVG IO (part 2)
 skinparam componentStyle rectangle
 skinparam shadowing false
 
@@ -11,17 +11,17 @@ package "src/cli" as CLI {
   component "CliShell / Tokenizer\nstdin, stdout, stderr" as Shell
 }
 package "src/application" as Application {
-  component "CommandDispatcher / ArgumentParser\nEditCommand: Create / Move / Scale / Set / Delete\nGroup / Ungroup / AddTo / Front / Back\nCommand: Init / Tree / Show / Help / Undo / Redo" as Commands
+  component "CommandDispatcher / ArgumentParser\nEditCommand: Create / Move / Scale / Set / Delete\nGroup / Ungroup / AddTo / Front / Back\nCommand: Init / Read / Save / Canvas\nTree / Show / Help / Undo / Redo" as Commands
   component "EditorSession\nprepare document + history -> replace state" as Session
   component "HistoryManager / HistoryEntry\nprivate before + after snapshots\nnew stacks on each transition" as History
   component "DocumentView / TextPresenter\nimmutable values -> output lines" as Presentation
-  component "DocumentStore / SvgCodec\n(planned interfaces)" as Ports <<future>>
+  component "DocumentStore / SvgCodec\napplication-owned ports" as Ports
 }
 package "src/domain (implemented)" as Domain {
   component "SvgDocument / TreeNode\nShape / GeometricShape / Geometry\nRect / Circle / Ellipse / Line / Text / Group\nShapeFactory (constructors + parameter metadata)\nShapeDescription / Validation / DomainError" as Model
 }
-package "src/infrastructure (planned)" as Infrastructure {
-  component "FileDocumentStore\nXmlSvgCodec" as Adapters
+package "src/infrastructure" as Infrastructure {
+  component "FileDocumentStore (atomic replacement)\nXmlSvgCodec (saxes parser)" as Adapters
 }
 package "tests" as Tests {
   component "Domain / tokenizer / commands / session\nHistory failure injection and isolation\nCLI smoke tests and script replay" as Checks
@@ -31,7 +31,7 @@ Main --> Shell : constructs
 Main --> Commands : constructs
 Main --> Session : constructs
 Main --> Model : constructs factory
-Bootstrap ..> Infrastructure : future wiring
+Main --> Adapters : constructs and injects
 Shell --> Commands : tokens / results
 Commands --> Session : use cases
 Commands --> Presentation : query formatting
@@ -40,7 +40,8 @@ Session --> History : prepare history transition
 History --> Model : independent snapshot clones
 Commands --> Model : neutral parameter metadata
 Adapters ..|> Ports : implements
-Infrastructure ..> Domain : construct / traverse
+Session --> Ports : read / encode / write
+Infrastructure --> Domain : factory / neutral elements
 Checks --> Model : verified behavior
 Checks --> Commands : parsing / atomicity
 Checks --> Main : starts child process
@@ -52,15 +53,15 @@ note bottom of Domain
   clone() preserves instances, links and ID index.
 end note
 note bottom of Commands
-  Implemented: 16 commands, ten editing commands.
-  Read / save / canvas remain planned.
+  Implemented: 19 commands, ten editing commands.
+  Successful document operations block history.
   Only two name dispatch locations:
   CommandDispatcher and ShapeFactory.
   Future: registered command / ShapeProvider factories.
 end note
 legend bottom
   Solid arrows: implemented dependencies / tests
-  Dotted arrows: planned source dependencies / implementations
+  Dotted arrow: interface implementation
   Shape-specific presentation uses polymorphic descriptions.
 endlegend
 @enduml

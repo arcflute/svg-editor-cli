@@ -216,16 +216,13 @@ describe('queries, help and immutable boundaries', () => {
     expect(session.readTree().nodes[0]!.children).toHaveLength(2);
   });
 
-  it('supports help without a document and marks all future commands unavailable', () => {
+  it('supports help without a document and lists all implemented commands', () => {
     const { run } = editor();
     const lines = run('help');
     expect(lines).toContain('  create rect <id> <x> <y> <w> <h> [fill] [in <containerId>]');
     expect(lines).toContain('  create line <id> <x1> <y1> <x2> <y2> [stroke] [in <containerId>]');
     expect(lines).toContain('  create text <id> <x> <y> "content" [in <containerId>]');
-    for (const name of ['read', 'save', 'canvas']) {
-      expect(lines.find(line => line.startsWith(`  ${name} `))).toContain('[not implemented yet]');
-      expect(() => run(name)).toThrow(`command not implemented yet: ${name}`);
-    }
+    expect(lines.join('\n')).not.toContain('[not implemented yet]');
     for (const name of ['exit', 'quit', 'bogus', 'toString', 'INIT']) expect(() => run(name)).toThrow(`unknown command: ${name}`);
     expect(lines.join('\n')).not.toContain('create box');
   });

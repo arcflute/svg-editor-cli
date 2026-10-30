@@ -5,6 +5,7 @@ import type { Group } from './Group.js';
 import type { ShapeStyle } from './ShapeStyle.js';
 import type { SvgDocument } from './SvgDocument.js';
 import type { GeometryDescription, ShapeDescription } from './ShapeDescription.js';
+import type { ShapeElement } from './ShapeElement.js';
 
 export abstract class Shape extends TreeNode {
   readonly #id: string;
@@ -20,6 +21,7 @@ export abstract class Shape extends TreeNode {
 
   public abstract get type(): string;
   public get id(): string { return this.#id; }
+  public get isContainer(): boolean { return this.acceptsChildren; }
   public get parent(): Group | SvgDocument | null { return this.parentNode as Group | SvgDocument | null; }
   public get children(): readonly Shape[] { return this.childNodes as readonly Shape[]; }
   public get style(): ShapeStyle { return Object.freeze({ ...this.#style }); }
@@ -32,6 +34,13 @@ export abstract class Shape extends TreeNode {
   protected override get nodeId(): string { return this.#id; }
   protected get ownAttributes(): Readonly<Record<string, string | number>> { return {}; }
   protected get geometryDescription(): GeometryDescription { return {}; }
+  protected get elementAttributes(): Readonly<Record<string, string | number>> { return this.attributes; }
+  protected get elementText(): string | undefined { return undefined; }
+
+  public toElement(): ShapeElement {
+    return Object.freeze({ name: this.type, attributes: Object.freeze({ id: this.id, ...this.elementAttributes }),
+      text: this.elementText, children: Object.freeze(this.children.map(child => child.toElement())) });
+  }
 
   public describe(): ShapeDescription {
     const geometry = this.geometryDescription;

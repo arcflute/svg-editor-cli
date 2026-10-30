@@ -13,11 +13,11 @@
 | 编号 | 原文章节 | 需求描述 | 计划模块 | 验收方法或场景 | 当前状态 |
 |---|---|---|---|---|---|
 | DOC-001 | §3 文档类 | `init [w] [h]` 建立当前空文档，默认 800×600 | A/D/C | Commands.test.ts：默认/单宽/双尺寸、替换旧文档、失败不变；历史屏障另见 HIS-005 | 已验证 |
-| DOC-002 | §3、§2、§6 | `read <file.svg>` 读入完整 SVG 为当前文档 | A/I/D | 合法文件替换成功；不存在、格式错误不替换；缺 ID 见 ID-003/004 | 未实现 |
-| DOC-003 | §3、§6 | `save [file.svg]` 保存；无参使用读入路径 | A/I | read 后无参保存；显式路径；无默认路径报错；init 后路径见 A-04 | 未实现 |
-| DOC-004 | §3、§4.3 | 无参 `canvas` 只显示尺寸 | A/C | 查询前后文档、路径、历史、禁用标志完全相同 | 未实现 |
-| DOC-005 | §3、§4.3 | `canvas w h` 修改尺寸，成功后禁用历史 | A/D | 宽高改变、图形坐标不变；失败不变；下一次成功编辑解禁 | 未实现 |
-| DOC-006 | §4.2 | 未 init/read 时需要文档的命令报 `error: no document. use 'init' or 'read' first` | A/C | 编辑、save、canvas、tree/show 在无文档会话；help 例外为暂定 A-05 | 未实现 |
+| DOC-002 | §3、§2、§6 | `read <file.svg>` 读入完整 SVG 为当前文档 | A/I/D | 合法文件替换成功；不存在、格式错误不替换；缺 ID 见 ID-003/004 | 已验证 |
+| DOC-003 | §3、§6 | `save [file.svg]` 保存；无参使用读入路径 | A/I | read 后无参保存；显式路径；无默认路径报错；init 后路径见 A-04 | 已验证 |
+| DOC-004 | §3、§4.3 | 无参 `canvas` 只显示尺寸 | A/C | 查询前后文档、路径、历史、禁用标志完全相同 | 已验证 |
+| DOC-005 | §3、§4.3 | `canvas w h` 修改尺寸，成功后禁用历史 | A/D | 宽高改变、图形坐标不变；失败不变；下一次成功编辑解禁 | 已验证 |
+| DOC-006 | §4.2 | 未 init/read 时需要文档的命令报 `error: no document. use 'init' or 'read' first` | A/C | 编辑、save、canvas、tree/show 在无文档会话；help 例外为暂定 A-05 | 已验证 |
 
 ## 编辑、结构与查询命令
 
@@ -42,13 +42,13 @@
 
 | 编号 | 原文章节 | 需求描述（位置参数；附加白名单） | 计划模块 | 验收方法或场景 | 当前状态 |
 |---|---|---|---|---|---|
-| SHP-001 | §4.1 | rect：`id x y w h [fill]`；`x y width height` | D/A | 参数映射 w→width、h→height；逐字段 set/move/scale/读回 | 未实现 |
+| SHP-001 | §4.1 | rect：`id x y w h [fill]`；`x y width height` | D/A | 参数映射 w→width、h→height；逐字段 set/move/scale/读回 | 已验证 |
 | SHP-002 | §4.1 | circle：`id cx cy r [fill]`；`cx cy r` | D/A | 领域/Commands/SetCommand：圆心/半径及其他类型字段拒绝 | 已验证 |
 | SHP-003 | §4.1 | ellipse：`id cx cy rx ry [fill]`；`cx cy rx ry` | D/A | 领域/Commands/SetCommand：双半径/圆心及参数边界 | 已验证 |
 | SHP-004 | §4.1 | line：`id x1 y1 x2 y2 [stroke]`；`x1 y1 x2 y2` | D/A | 领域/Commands/SetCommand：两端几何、可选 stroke、不误当 fill | 已验证 |
-| SHP-005 | §4.1 | text：`id x y "content"`；`x y text` | D/A/C/I | 空格、中文、空文本、XML 转义；无额外 font-size 白名单 | 未实现 |
+| SHP-005 | §4.1 | text：`id x y "content"`；`x y text` | D/A/C/I | 空格、中文、空文本、XML 转义；无额外 font-size 白名单 | 已验证 |
 | SHP-006 | §4.1、§2.1 | g：`id`；只有公共白名单，通过 Composite 操作子孙 | D/A | Move/Scale/Set/DeleteCommand：空组/嵌套组、公共样式不覆盖孩子、拒绝几何字段 | 已验证 |
-| SHP-007 | §4.1 | 省略 fill/stroke 时不写入默认属性 | D/I | create→save→read，字段仍缺省；不能写 black/none 替代“未设置” | 未实现 |
+| SHP-007 | §4.1 | 省略 fill/stroke 时不写入默认属性 | D/I | create→save→read，字段仍缺省；不能写 black/none 替代“未设置” | 已验证 |
 | SHP-008 | §4.1 | 非白名单字段报 `error: unknown attribute: <attr>` | D/A/C | SetCommand/领域/CLI：id、transform、font-size、跨类型字段、label 精确拒绝 | 已验证 |
 | SHP-009 | §3、§4.4 | 只内置 rect/circle/ellipse/line/text/g；box 报未知类型 | D/A/C | 工厂/应用测试 box 与未知类型精确错误，CLI 统一 error:；失败不占用 ID | 已验证 |
 
@@ -64,16 +64,16 @@
 | CLI-006 | §2、§6 | 编辑成功输出结果摘要，查询直接输出内容 | A/C | 每条成功编辑只有对应摘要；失败不出现 created/saved 等成功信息 | 未实现 |
 | CLI-007 | §2、§4.2 | 所有业务错误 `error:` 前缀，一行一条 | A/C/I | 表中所有错误精确检查；多行异常不得原样喷出堆栈 | 未实现 |
 | CLI-008 | 本轮约束 | 已知但未实现命令明确报错，不伪造成功 | A/C/T | 十六命令已实现；其他三命令报 command not implemented yet，未知/exit/quit 报 unknown command | 已验证 |
-| ID-001 | §2、§4.2 | 所有图形含 g 的 ID 在整个文档唯一、大小写敏感 | D/A/I | r1 与 R1 可并存；跨组同名拒绝，报 `id already exists`；查不到报 `no such shape` | 未实现 |
+| ID-001 | §2、§4.2 | 所有图形含 g 的 ID 在整个文档唯一、大小写敏感 | D/A/I | r1 与 R1 可并存；跨组同名拒绝，报 `id already exists`；查不到报 `no such shape` | 已验证 |
 | ID-002 | §2 | create/group 必须显式 ID | C/A | 缺 ID 拒绝；不替用户生成 CLI ID | 已验证 |
-| ID-003 | §2、§6 | 外部 SVG 缺 ID 自动使用标签名+序号，并打印警告 | I/D/A/C | 无名 rect/g，精确 `warning: assigned id rect1 to unnamed <rect>`；失败读入不提前发成功警告 | 未实现 |
-| ID-004 | §2 唯一性；本轮边界 | 自动 ID 不能与文件任意位置的显式 ID 冲突 | I/D | 首部缺 ID、末部显式 rect1，须预扫描保留 rect1 后再分配；显式重复 ID 拒绝 | 未实现 |
+| ID-003 | §2、§6 | 外部 SVG 缺 ID 自动使用标签名+序号，并打印警告 | I/D/A/C | 无名 rect/g，精确 `warning: assigned id rect1 to unnamed <rect>`；失败读入不提前发成功警告 | 已验证 |
+| ID-004 | §2 唯一性；本轮边界 | 自动 ID 不能与文件任意位置的显式 ID 冲突 | I/D | 首部缺 ID、末部显式 rect1，须预扫描保留 rect1 后再分配；显式重复 ID 拒绝 | 已验证 |
 | STR-001 | §0、§2.1、§6.1 | 容器可递归嵌套；每节点有唯一父级；根代表 SVG 文档 | D | SvgDocument.test.ts、Clone.test.ts、Flowchart.test.ts 验证多层树/重挂接/删除/索引；仅领域 API | 已验证 |
 | STR-002 | §3、§4.2；本轮边界 | group/addto 不得产生自环或祖先后代环 | D/A | group 同时选祖先和后代；addto 自身/后代；失败树和历史不变 | 已验证 |
 | STR-003 | §4.2 | SVG 根直接子节点的 g 禁止 ungroup | D/A | 精确 `error: cannot ungroup top-level container: scene` | 已验证 |
-| STR-004 | §3、§0 | 有序子节点承载图层；移动父级及解组不丢相对顺序 | D/I | group/addto/ungroup/front/back 前后顺序和 SVG 元素顺序一致 | 未实现 |
+| STR-004 | §3、§0 | 有序子节点承载图层；移动父级及解组不丢相对顺序 | D/I | group/addto/ungroup/front/back 前后顺序和 SVG 元素顺序一致 | 已验证 |
 | STR-005 | §4.1、§4.2 | in 目标必须存在且为 g | D/A | Commands.test.ts：两类规范错误，原树/顺序不变，失败 ID 可重用 | 已验证 |
-| GEO-001 | §2、§3 | 左上原点、x 右 y 下、px、支持浮点 | D/C/I | 负坐标、小数、读写一致；finite 数值约束暂定见 A-05 | 未实现 |
+| GEO-001 | §2、§3 | 左上原点、x 右 y 下、px、支持浮点 | D/C/I | 负坐标、小数、读写一致；finite 数值约束暂定见 A-05 | 已验证 |
 
 ## 撤销、重做与事务边界
 
@@ -83,20 +83,20 @@
 | HIS-002 | §3、§4.3 | `redo` 重做撤销的编辑 | A/D | 多步撤销后按序重做，父级、顺序、属性缺省完全恢复 | 已验证 |
 | HIS-003 | §4.3 | 一条编辑命令对应一个 undo 单元 | A | group 多对象、容器递归变换/删除一次 undo 全恢复 | 已验证 |
 | HIS-004 | §3、§4.3；本轮边界 | undo 后成功新编辑清空 redo；失败新编辑不能清空 | A | undo→无效 edit→redo 仍成功；undo→有效 edit→redo 无可重做项 | 已验证 |
-| HIS-005 | §4.3 | 成功 init/read/save/修改 canvas 后禁用 undo/redo，报 `error: undo not allowed after io command` | A | 每种文档操作分别检查两命令；失败 IO 不改变禁用状态 | 未实现 |
-| HIS-006 | §4.3；本轮边界 | 下一次成功编辑解禁，失败编辑不能解禁 | A | IO→失败 edit→undo 仍禁用；IO→成功 edit→undo 允许；旧历史处理见 A-02 | 未实现 |
-| HIS-007 | §3、§4.3 | tree/show/help 和 canvas 查询不入历史且不改变禁用状态 | A/C | 在可用和禁用两种状态下查询，比较两栈与会话 | 未实现 |
-| HIS-008 | §2；本轮边界 | 失败命令不改变图形、文档、历史或相关会话状态 | A/D/I | 错误参数、重复 ID、循环、读写失败；对比前后文档内容、类/引用不变量、两栈、禁用位、路径和 ID 分配状态 | 未实现 |
+| HIS-005 | §4.3 | 成功 init/read/save/修改 canvas 后禁用 undo/redo，报 `error: undo not allowed after io command` | A | 每种文档操作分别检查两命令；失败 IO 不改变禁用状态 | 已验证 |
+| HIS-006 | §4.3；本轮边界 | 下一次成功编辑解禁，失败编辑不能解禁 | A | IO→失败 edit→undo 仍禁用；IO→成功 edit→undo 允许；旧历史处理见 A-02 | 已验证 |
+| HIS-007 | §3、§4.3 | tree/show/help 和 canvas 查询不入历史且不改变禁用状态 | A/C | 在可用和禁用两种状态下查询，比较两栈与会话 | 已验证 |
+| HIS-008 | §2；本轮边界 | 失败命令不改变图形、文档、历史或相关会话状态 | A/D/I | 错误参数、重复 ID、循环、读写失败；对比前后文档内容、类/引用不变量、两栈、禁用位、路径和 ID 分配状态 | 已验证 |
 
 ## 文件与完整场景
 
 | 编号 | 原文章节 | 需求描述 | 计划模块 | 验收方法或场景 | 当前状态 |
 |---|---|---|---|---|---|
-| IO-001 | §0、§3、§6 | SVG/XML 文件输出包含根命名空间、画布尺寸、viewBox、有序元素及属性 | I/D/A | 六类型输出解析有效；text 为子文本，特殊字符转义 | 未实现 |
-| IO-002 | §3、§6 | 文件读写错误输出规范且状态不变 | I/A/C | `cannot read file: a.svg`、`cannot write file: a.svg`；用临时目录/可控故障端口避免权限测试不稳定 | 未实现 |
-| IO-003 | §0、§6 | 支持本编辑器输出的 SVG 读回 | I/D/T | save→read 结构/几何/样式/文本/顺序/ID 等价；不要求 XML 字节相同 | 未实现 |
+| IO-001 | §0、§3、§6 | SVG/XML 文件输出包含根命名空间、画布尺寸、viewBox、有序元素及属性 | I/D/A | 六类型输出解析有效；text 为子文本，特殊字符转义 | 已验证 |
+| IO-002 | §3、§6 | 文件读写错误输出规范且状态不变 | I/A/C | `cannot read file: a.svg`、`cannot write file: a.svg`；用临时目录/可控故障端口避免权限测试不稳定 | 已验证 |
+| IO-003 | §0、§6 | 支持本编辑器输出的 SVG 读回 | I/D/T | save→read 结构/几何/样式/文本/顺序/ID 等价；不要求 XML 字节相同 | 已验证 |
 | IO-004 | §0.2；§1.2 质量保证 | 保存的 SVG 可用浏览器预览 | I/T/DOC | 完成业务后浏览器人工打开并记录真实结果，本轮不声称预览 | 未实现 |
-| IO-005 | §0.1、§3；原文未完整界定 | 外部 transform、额外属性和未知元素处理 | I/D | 按暂定 A-03 建拒绝/降级样例，确认教师预期后再落地 | 未实现 |
+| IO-005 | §0.1、§3；原文未完整界定 | 外部 transform、额外属性和未知元素处理 | I/D | 按暂定 A-03 建拒绝/降级样例，XmlSvgCodec.test.ts 按 A-03 验证拒绝/降级；教师兼容预期仍未确认 | 已验证 |
 | E2E-001 | §6 | 完整 transcript 覆盖编辑、显示、历史、错误、文件读写 | T/examples | 真实脚本回放并核对输出；无 box 语义，仅可出现名为 box 的 rect | 未实现 |
 | E2E-002 | §6.1 版本 A | 两节点流程图：8 次 create、嵌套 in、整体移动、undo、文本编辑、保存 | T/examples | 树中 8 个图形元素，SVG 读回/预览；版本 B 不在本阶段实现 | 未实现 |
 
@@ -192,3 +192,5 @@
 第四轮累计 109 条需求/子需求，66 条已验证、43 条未实现。typecheck、292 项测试、build、两入口回放均通过。HIS 原项涉及未来结构命令、所有 IO 屏障与 canvas 查询，保留未实现状态；当前五编辑历史和 init 屏障以 R4-005–008 单独验收。分步本地提交不等于远程已同步。
 
 当前补充：分组/图层与全部十种编辑历史已由 StructureCommands.test.ts、Grouping.test.ts 和既有历史测试验证；324 项通过。完整 IO 事务与最终验收仍待后两部分。上述第四轮统计为历史记录。
+
+第二部分补充：20 文件 390 项测试覆盖 DocumentCommands / FileDocumentStore / XmlSvgCodec / FileReplay；文档命令、缺省样式、两遍 ID、顺序往返和完整 IO 屏障已验证。IO-005 仅代表已实现并验证 A-03 的明确拒绝/降级策略，不能声称兼容任意外部 SVG 或已取得教师认可。浏览器、完整 transcript 和最终文档另在第三部分验收。

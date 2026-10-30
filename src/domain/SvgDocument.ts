@@ -16,6 +16,7 @@ export class SvgDocument extends TreeNode {
 
   public get width(): number { return this.#width; }
   public get height(): number { return this.#height; }
+  public get elementCount(): number { return this.indexedNodeCount; }
   public get roots(): readonly Shape[] { return this.childNodes as readonly Shape[]; }
   protected override get nodeId(): undefined { return undefined; }
   protected override get acceptsChildren(): boolean { return true; }

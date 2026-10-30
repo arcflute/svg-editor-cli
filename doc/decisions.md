@@ -197,3 +197,17 @@ g 的 set 公共属性只改组自身，借 SVG 继承呈现，不手工改写�
 第一部分落实 A-01：TreeNode.groupNodes 在改变实例前计算各旧父的新 children、公共祖先插入位置、新组顺序及索引；ungroupNode 同样先准备全部结果，再移除组并提升孩子。失败保留原实例与索引，已由直接领域测试验证。SvgDocument.group 接受工厂创建的空 detached 容器，避免另建类型分派。front/back 复用同父 reparent 的最终位置语义。
 
 新五个命令均继承 EditCommand，候选成功后一次提交文档与历史；结构操作不按叶子逐个记录历史。ungroup 删除容器自身样式，不将继承样式展开为子节点显式属性，这是与“删除容器、提升子节点”一致的项目选择；尚无教师确认。当前剩余 IO 及最终验收按新授权继续，每部分独立提交推送。
+
+## D-12 SVG IO 与工具链实际选择（2026-10-30）
+
+采用 application 自有同步 DocumentStore/SvgCodec 端口、infrastructure/FileDocumentStore 与 XmlSvgCodec，bootstrap 注入。小型本地 CLI 串行处理命令，同步端口减少异步竞态和无关框架；大型文件/网络后端再改异步协议。原子保存用同目录随机名临时文件 wx 独占创建、写入关闭后 rename 替换；失败仅清理自己创建的临时文件，不承诺断电事务。Windows 实际文件测试与 rename 故障注入已验证保留旧目标。
+
+通过 npm registry 实际确认并精确锁定 saxes 6.0.0（Node >=12.22.7）。[官方文档](https://github.com/lddubeau/saxes)说明其严格 XML 与命名空间解析、事件 API；不自动获取 DTD。仓库已归档，选用原因是课程所需 XML 1.0 子集稳定、依赖少且同步 API 适配现有架构；该维护限制不隐藏，后续需求扩大时可替换 SvgCodec。安装时 npm 报 0 vulnerabilities，仅为当时审计结果，不保证永久安全。
+
+实际 typecheck 发现 saxes 的泛型及可选属性声明与 TS 5.9/exactOptionalPropertyTypes 不兼容。采用 skipLibCheck，只略过第三方 .d.ts 内部检查，项目源码及使用库的调用处仍接受 strict 类型检查；不关闭 exactOptionalPropertyTypes。领域中立 ShapeElement 由各类多态提供，Text 把文本与属性分开；XML 层通用遍历不按六种标签重复分派。工厂增加 children 参数时，先校验父属性再接管 detached 子节点，失败不留下父链接。
+
+A-03 已按严格子集落实，但仍属未获教师确认的兼容性假设：XML 1.0、UTF-8；声明/注释/CDATA/内置实体与数字引用允许；DTD、处理指令、未知类型/属性/外来命名空间、transform、额外字体/样式属性和不匹配 viewBox 明确拒绝。允许 SVG 命名空间前缀和无命名空间文档；无尺寸时采用 800×600。图形几何属性要求显式提供，不替外部文件补 SVG 几何默认值；空 text 允许。根只接收 width/height/匹配的 viewBox 与命名空间声明。data-kind=box 仅在容器中降级并警告，不回写标记。
+
+导入先扫描整份文件的显式 ID，再按每种标签计数分配，编号在本次导入内，不放全局。警告只在候选完整成功后输出。默认路径采纳 A-04：read 与显式 save 成功更新为绝对路径，init 清除，失败保持；查询尺寸、编辑、undo/redo 不改路径。文本 XML 转义在写出时处理，换行/回车/tab 用字符引用保证读回原值；XML 1.0 非法码点保存失败，领域仍允许原文本。
+
+编码使用文档副本，解码结果也克隆再提交；故障测试确认适配器改副本再抛错不会污染活动模型。会话先准备输出/新历史/路径，再写文件，成功后一次替换状态。此实现不包含 box、动态插件、任意 SVG 渲染或 transform 矩阵系统。

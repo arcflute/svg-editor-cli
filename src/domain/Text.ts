@@ -16,6 +16,10 @@ export class Text extends GeometricShape {
   public get x(): number { return this.coordinate('x'); }
   public get y(): number { return this.coordinate('y'); }
   public get text(): string { return this.#text; }
+  protected override get elementAttributes(): Readonly<Record<string, string | number>> {
+    return { ...this.style, ...super.ownAttributes };
+  }
+  protected override get elementText(): string { return this.#text; }
   protected override get geometryDescription(): GeometryDescription {
     return { points: [{ x: this.x, y: this.y }], text: this.text };
   }

@@ -11,7 +11,7 @@ import type { ShapeParameter, ShapeTypeDescription } from './ShapeTypeDescriptio
 
 interface ShapeDefinition {
   readonly description: ShapeTypeDescription;
-  readonly construct: (id: string, attributes: Readonly<Record<string, unknown>>) => Shape;
+  readonly construct: (id: string, attributes: Readonly<Record<string, unknown>>, children: readonly Shape[]) => Shape;
 }
 
 /** One static definition per type supplies both construction and neutral parameter metadata. */
@@ -46,14 +46,22 @@ export class ShapeFactory {
         { name: 'x', attribute: 'x', kind: 'number' }, { name: 'y', attribute: 'y', kind: 'number' },
         { name: 'content', attribute: 'text', kind: 'text' },
       ], (id, a) => new Text(id, Validation.finite(a.x, 'x'), Validation.finite(a.y, 'y'), Validation.text(a.text, 'text'))),
-      this.define('g', [], id => new Group(id)),
+      this.define('g', [], (id, _attributes, children) => new Group(id, children)),
     ]);
   }
 
-  public create(type: string, id: string, attributes: Readonly<Record<string, unknown>> = {}): Shape {
-    const shape = this.definition(type).construct(id, attributes);
+  public create(type: string, id: string, attributes: Readonly<Record<string, unknown>> = {}, children: readonly Shape[] = []): Shape {
+    const definition = this.definition(type);
+    // Validate before adopting caller-owned detached children.
+    const shape = definition.construct(id, attributes, []);
+    if (children.length > 0 && !shape.isContainer) throw new DomainError('NOT_CONTAINER', `not a container: ${id}`);
     // Each model validates its own whitelist; no duplicate per-type whitelist here.
     for (const [attribute, value] of Object.entries(attributes)) shape.set(attribute, value);
+    if (children.length > 0) {
+      const container = definition.construct(id, attributes, children);
+      for (const [attribute, value] of Object.entries(attributes)) container.set(attribute, value);
+      return container;
+    }
     return shape;
   }
 

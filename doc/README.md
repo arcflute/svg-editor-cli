@@ -1,13 +1,13 @@
 # SVG 编辑器（CLI）个人 Lab：正式提交文档
 
-当前完成后续三部分的第一部分（分组/图层），过程见 [round5.md](round5.md)。按功能逐步实现、验证和提交的详细记录见 [round4.md](round4.md)；前几轮过程与验证记录保留原始事实。
+当前完成后续三部分的第二部分（画布和 SVG IO），过程见 [round5.md](round5.md)。按功能逐步实现、验证和提交的详细记录见 [round4.md](round4.md)；前几轮过程与验证记录保留原始事实。
 
 ## 1. 项目信息和运行方式
 
 - 课程：《高级软件开发技术》；作业：Lab1 Phase 1。
 - 作业基线：[phase_cli_1.md](../phase_cli_1.md)，保持原文不变。
 - Git 仓库地址：[arcflute/svg-editor-cli](https://github.com/arcflute/svg-editor-cli)。本项目独立仓库的 origin 为 `https://github.com/arcflute/svg-editor-cli.git`，目标分支 main。
-- 当前进度：第四轮——已实现 `init/create/tree/show/help/move/scale/set/delete/undo/redo`；五个编辑命令统一候选提交，历史保存真实类快照。新增 `group/ungroup/addto/front/back`，当前共十六种命令；read/save/canvas、SVG 读写尚未实现。
+- 当前进度：Phase 1 全部 19 条命令已实现，包括 `read/save/canvas`；SVG 支持六类型往返与严格导入子集，最终验收和浏览器预览尚待第三部分。
 - 第一轮独立提交：`c6b5e137ccd1fa8fb760844efb87d17d08660144`；第二轮独立提交：`b930b61cb561aaf07d5154ba84d051b71c66b902`。此前推送受 HTTPS Git 认证阻碍，用户完成认证后已确认两轮均在远程 main 历史中，且本地 main 已跟踪 origin/main。
 - 更新日期：2026-10-30（Asia/Shanghai），前三轮发生于 2026-10-26。作者：李炯燃；学号：26213050243；截止日期：2026-10-31（用户提供）。
 - 本地/远程：本轮开始前已用 Git 核实 main 与 origin/main 同为 `06967aa`，此前全部功能提交已推送。当前按用户授权三部分分别提交推送，实际节点见 Git 历史。
@@ -24,7 +24,7 @@ npm run build
 node dist/bootstrap/main.js
 ```
 
-`npm test` 使用 `vitest run`，执行一次退出。CLI 显示 `svg-editor 0.1 — type 'help' for commands` 与 `svg> `，逐行执行十六种已实现命令。help 列出全部作业命令，三个后续命令标为 `[not implemented yet]`；调用时明确报错。空行/整行注释静默跳过；单条错误后继续，错误统一写 stderr 一行一个 `error:`。EOF 正常结束，不新增 exit/quit；自动验证关闭 stdin，未声称人工验证终端按键。
+`npm test` 使用 `vitest run`，执行一次退出。CLI 显示 `svg-editor 0.1 — type 'help' for commands` 与 `svg> `，逐行执行十九种已实现命令。help 列出全部作业命令，所有 19 条命令均已接通。空行/整行注释静默跳过；单条错误后继续，错误统一写 stderr 一行一个 `error:`。EOF 正常结束，不新增 exit/quit；自动验证关闭 stdin，未声称人工验证终端按键。
 
 输入示例和 PowerShell UTF-8 回放命令见 [examples/README.md](../examples/README.md)。text 内容整体双引号包裹，支持中文、空格、空串及 `\"`/`\\`；未知转义和相邻引号片段报错，无行尾注释。六种 create 均支持尾部未引用的 `in <containerId>`。完整规则和暂定选择见 [D-07](decisions.md#d-07-第三轮分词和参数边界)。
 
@@ -48,19 +48,19 @@ java '-Djava.awt.headless=true' -jar .tools/plantuml.jar -charset UTF-8 -tpng do
 | 模块/目录 | 职责及计划中的类/接口 | 当前状态 |
 |---|---|---|
 | src/domain/ | Shape、六种具体类型、SvgDocument、ShapeFactory；TreeNode/GeometricShape/Geometry/Validation/DomainError；中立 ShapeStyle/ShapeDescription/ShapeTypeDescription 契约 | 14 个行为类；第三轮增加多态展示描述和工厂参数元数据，保持既有树/克隆 API |
-| src/application/ | Command/EditCommand，十六种具体命令；CommandDispatcher/ArgumentParser/EditorSession/TextPresenter/InputError；HistoryEntry/HistoryManager 与只读状态/查询接口 | 编辑与历史已实现；DocumentStore/SvgCodec 接口仍规划 |
+| src/application/ | Command/EditCommand，十九种具体命令；CommandDispatcher/ArgumentParser/EditorSession/TextPresenter/InputError；HistoryEntry/HistoryManager 与只读状态/查询接口 | 编辑与历史已实现；DocumentStore/SvgCodec 接口和文件操作已实现 |
 | src/cli/ | CliShell 的 readline 输入输出和统一错误前缀；Tokenizer 扫描并保留引号来源 | 已接通应用层；命令参数解析放到各 Command.parse，不再另建 CommandParser |
-| src/infrastructure/ | FileDocumentStore、XmlSvgCodec 实现接口；文件和 XML 库细节 | 仅规划，不提前选 XML 库 |
-| src/bootstrap/ | main.ts 共享工厂装配会话、分发器和终端流 | 现有装配不变，历史由会话维护；以后再加 IO 适配器 |
-| tests/ | 领域回归、分词/参数、编辑与历史事务、故障注入、CLI 真实进程及样例回放 | 16 个文件共 324 项，原领域与启动验证目的保留 |
-| examples/ | §6.1 版本 A 的创建/查询及编辑/历史脚本 | round3/round4.commands.txt 可执行；尚无 SVG 文件 |
+| src/infrastructure/ | FileDocumentStore、XmlSvgCodec 实现接口；文件和 XML 库细节 | FileDocumentStore 原子替换；XmlSvgCodec 使用 saxes 6.0.0 |
+| src/bootstrap/ | main.ts 共享工厂装配会话、分发器和终端流 | 现有装配不变，历史由会话维护；已注入文件/编码适配器 |
+| tests/ | 领域回归、分词/参数、编辑与历史事务、故障注入、CLI 真实进程及样例回放 | 20 个文件共 390 项，原领域与启动验证目的保留 |
+| examples/ | §6.1 版本 A 的创建/查询及编辑/历史脚本 | round3/round4.commands.txt 可执行；最终 SVG 样例在第三部分生成 |
 | doc/ | 正式文档、需求矩阵、决策与架构图 | 同步第四轮范围与证据；分组/IO 相关完整历史场景仍待验证 |
 
 与建议目录的唯一区别是暂不创建无代码目录；职责边界不变。所有已实现类独占同名文件；main.ts 是装配入口，不人为创建没有行为的 Main 类。结构/几何辅助类均实际被模型使用，不是占位框架。
 
 ### 2.2 设计模式选择与计划落地位置
 
-**Command（已落实十六种命令）**：Command 定义 execute(session)，各类保存意图与参数；十个编辑类 Create/Move/Scale/Set/Delete/Group/Ungroup/AddTo/Front/BackCommand 继承 EditCommand，共用会话事务，apply 只接受候选文档。Undo/RedoCommand 交给会话准备历史迁移。InitCommand 建文档边界，Tree/Show/HelpCommand 查询；没有空的 DocumentCommand/QueryCommand 类。CommandDispatcher 仍为唯一名字分派和 help 目录，参数由各 parse 定义。
+**Command（已落实十九种命令）**：Command 定义 execute(session)，各类保存意图与参数；十个编辑类 Create/Move/Scale/Set/Delete/Group/Ungroup/AddTo/Front/BackCommand 继承 EditCommand，共用会话事务，apply 只接受候选文档。Undo/RedoCommand 交给会话准备历史迁移。InitCommand 建文档边界，Tree/Show/HelpCommand 查询；没有空的 DocumentCommand/QueryCommand 类。CommandDispatcher 仍为唯一名字分派和 help 目录，参数由各 parse 定义。
 
 **Composite（已落实）**：Shape 统一 move/scale/set/clone 与 attributes；Group 有序持有 Shape 子节点并多态递归，叶子通过 GeometricShape/不可变 Geometry 更新自身字段。SvgDocument 通过 TreeNode 的受保护操作统一维护结构与 ID 索引；外层无容器写数组接口。普通 g 的样式仅保留在自身，未来序列化通过 SVG 继承呈现；本轮不做渲染或 box。
 
@@ -159,7 +159,7 @@ EditorSession.initialize(width,height) 验证新文档并建立历史屏障。ex
 |---|---|---|---|
 | 模块划分 | 五模块架构 | domain/application/cli/bootstrap 已有代码；infrastructure 仍规划 | 参数 parse 在具体命令内，调整理由见 D-08 |
 | 类封装 | 一类一文件、图形多态行为 | 领域状态私有，应用会话私有；命令参数私有；展示与 token 接口为只读值 | 传输描述不是核心模型，领域行为仍由类承担 |
-| 模式 | Command/Composite/Factory | 十六种 Command，十个编辑类共享 EditCommand 事务；六图形 Composite、集中 Factory | 历史已接通当前编辑；分组和 IO 仍未实现 |
+| 模式 | Command/Composite/Factory | 十九种 Command，十个编辑类共享 EditCommand 事务；六图形 Composite、集中 Factory | 历史已接通当前编辑；分组和 IO 仍未实现 |
 | 依赖方向 | 内层不依赖外层；bootstrap 装配 | cli→application→domain，domain 无外层/Node IO/XML；应用不打印 | 当前源码审查符合，未安装永久架构守卫 |
 | 名字分派 | 命令分发/图形工厂两处 | CommandDispatcher 单目录、ShapeFactory 单构造/描述表；展示调用多态描述 | 属性和数据种类校验不等于图形类型分派；无第二份类型表 |
 | 文档与状态 | 每轮同步更新 | 当前编辑及 R4 历史子项已验证；跨 group/IO/canvas 完整场景仍待验收 | 不把领域结构 API 当成 CLI 分组完成 |
@@ -248,8 +248,14 @@ History.test.ts 通过注入快照创建、历史准备、undo/redo 恢复失败
 - 按 §6 与 §6.1 版本 A 回放实际命令，保存真实样例，再在浏览器打开 SVG 记录视觉结果。
 - 最终按 requirements.md 逐项填验证证据，审查面向对象、两处分派和依赖方向，持续维护 Git 提交历史；全部完成后才处理 final 标签。
 
-本轮验证的是领域行为、十六种 CLI 命令和当前编辑的历史，不是完整作业。没有覆盖率数字或人工浏览器验收结果，不以当前测试替代课程最终验收。
+本轮验证的是领域行为、十九种 CLI 命令和当前编辑的历史，不是完整作业。没有覆盖率数字或人工浏览器验收结果，不以当前测试替代课程最终验收。
 
 ## 7. 当前后续工作
 
 分组、解组、改父级、图层与其历史已完成，详细语义和验证见 [round5.md](round5.md)。当前继续实现 read/save/canvas、文件路径事务及 SVG 往返，之后做全量验收和浏览器预览；每部分单独提交推送。
+
+## 第二部分实现与验证补充
+
+read/save/canvas 已接通；文件路径位于会话状态，不放入领域快照。成功文档操作清空/禁用历史，下一次成功编辑解禁。编码只接收文档副本，读入候选也复制后提交，避免适配器保留引用影响活动模型。文本通过多态 ShapeElement 作为子文本输出，XML 层不做六类型分派。
+
+第三方运行时依赖 saxes 6.0.0（Node >=12.22.7，本机 22.15.0）及传递 xmlchars 由锁文件固定。源码仍 strict；skipLibCheck 仅跳过第三方声明内部错误，原因见 D-12。完整选择、导入限制、实际问题与验证见 [round5.md](round5.md)。当前已有 20 个测试文件、390 项通过；实际完整命令在第三部分继续验收，未声称浏览器已预览。

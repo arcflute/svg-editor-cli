@@ -1,6 +1,6 @@
 # SVG 编辑器 CLI
 
-《高级软件开发技术》个人 Lab。第四轮已支持六种图形、嵌套容器、创建/查询、基础编辑及快照撤销重做。可用命令：`init/create/tree/show/help/move/scale/set/delete/undo/redo`。新增 `group/ungroup/addto/front/back`；SVG 文件读写仍待下一部分。
+《高级软件开发技术》个人 Lab。现已实现 Phase 1 的 19 条 CLI 命令：六种图形、嵌套容器、编辑/分组/图层、撤销重做、画布及 SVG 文件读写。最终场景和浏览器验收正在进行；box 与动态插件属于后续阶段。
 
 需要 Node.js 22（>=22.15.0）与 npm 10+。
 
@@ -12,7 +12,7 @@ npm test
 npm run build
 ```
 
-CLI 显示 `svg>`，输入 `help` 查看语法；后续命令明确标为尚未实现。EOF 退出，不提供 exit/quit。构建后可运行 `node dist/bootstrap/main.js`。
+CLI 显示 `svg>`，输入 `help` 查看语法。EOF 退出，不提供 exit/quit。构建后可运行 `node dist/bootstrap/main.js`。
 
 ```text
 init
@@ -35,3 +35,5 @@ redo
 - [原始作业要求](phase_cli_1.md)
 
 Git 仓库：[arcflute/svg-editor-cli](https://github.com/arcflute/svg-editor-cli)，目标分支 `main`。截至本轮开始，第四轮全部提交（最新 `06967aa`）已同步。接下来三部分各自完成后提交并推送，见 [开发记录](doc/round5.md)。最终验收完成后再打 `final` 标签。
+
+文件示例：`save "drawing.svg"`、`read "drawing.svg"`、`canvas 1024 768`。无参数 save 使用最近成功读入/保存路径；init 清除路径。init/read/save/修改 canvas 成功清空并禁用历史，canvas 查询不改变历史。外部 SVG 兼容范围见正式文档与 A-03：不静默忽略 transform 或未知属性。

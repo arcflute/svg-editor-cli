@@ -13,6 +13,7 @@ export abstract class TreeNode {
   protected get acceptsChildren(): boolean { return false; }
   protected get parentNode(): TreeNode | null { return this.#parent; }
   protected get childNodes(): readonly TreeNode[] { return Object.freeze([...this.#children]); }
+  protected get indexedNodeCount(): number { return this.requireIndex().size; }
 
   protected initializeRoot(children: readonly TreeNode[] = []): void {
     if (this.nodeId !== undefined || !this.acceptsChildren || this.#document !== null) {

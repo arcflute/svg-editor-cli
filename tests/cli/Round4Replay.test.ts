@@ -34,7 +34,7 @@ describe('round 4 CLI replay', () => {
       '    └── line#arrow1  (280,130) -> (520,130) stroke=black',
     ].join('\n'));
     expect(result.stdout).toContain('  undo — undo an edit\n');
-    expect(result.stdout).toContain('  save [file.svg] — save SVG [not implemented yet]');
+    expect(result.stdout).toContain('  save [file.svg] — save SVG');
   });
 
   it('recovers from errors without clearing redo or unlocking a document barrier', () => {

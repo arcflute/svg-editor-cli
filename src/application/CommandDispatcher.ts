@@ -1,3 +1,6 @@
+import { CanvasCommand } from './CanvasCommand.js';
+import { SaveCommand } from './SaveCommand.js';
+import { ReadCommand } from './ReadCommand.js';
 import { BackCommand } from './BackCommand.js';
 import { FrontCommand } from './FrontCommand.js';
 import { AddToCommand } from './AddToCommand.js';
@@ -35,9 +38,9 @@ export class CommandDispatcher {
   public constructor(private readonly session: EditorSession, factory: ShapeFactory) {
     this.#definitions = new Map<string, CommandDefinition>([
       ['init', { syntax: InitCommand.syntax, description: 'create an empty canvas', parse: args => InitCommand.parse(args) }],
-      ['read', { syntax: 'read <file.svg>', description: 'read SVG' }],
-      ['save', { syntax: 'save [file.svg]', description: 'save SVG' }],
-      ['canvas', { syntax: 'canvas [w] [h]', description: 'query or resize canvas' }],
+      ['read', { syntax: ReadCommand.syntax, description: 'read SVG', parse: args => ReadCommand.parse(args) }],
+      ['save', { syntax: SaveCommand.syntax, description: 'save SVG', requiresDocument: true, parse: args => SaveCommand.parse(args) }],
+      ['canvas', { syntax: CanvasCommand.syntax, description: 'query or resize canvas', requiresDocument: true, parse: args => CanvasCommand.parse(args) }],
       ['create', { syntax: CreateCommand.syntax, description: 'create a shape', requiresDocument: true, parse: args => CreateCommand.parse(args, factory) }],
       ['delete', { syntax: DeleteCommand.syntax, description: 'delete a subtree', requiresDocument: true, parse: args => DeleteCommand.parse(args) }],
       ['move', { syntax: MoveCommand.syntax, description: 'translate a shape', requiresDocument: true, parse: args => MoveCommand.parse(args) }],
