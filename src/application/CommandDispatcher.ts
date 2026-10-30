@@ -1,4 +1,5 @@
 import { CreateCommand } from './CreateCommand.js';
+import { DeleteCommand } from './DeleteCommand.js';
 import { HelpCommand } from './HelpCommand.js';
 import { InitCommand } from './InitCommand.js';
 import { MoveCommand } from './MoveCommand.js';
@@ -31,7 +32,7 @@ export class CommandDispatcher {
       ['save', { syntax: 'save [file.svg]', description: 'save SVG' }],
       ['canvas', { syntax: 'canvas [w] [h]', description: 'query or resize canvas' }],
       ['create', { syntax: CreateCommand.syntax, description: 'create a shape', requiresDocument: true, parse: args => CreateCommand.parse(args, factory) }],
-      ['delete', { syntax: 'delete <id>', description: 'delete a subtree' }],
+      ['delete', { syntax: DeleteCommand.syntax, description: 'delete a subtree', requiresDocument: true, parse: args => DeleteCommand.parse(args) }],
       ['move', { syntax: MoveCommand.syntax, description: 'translate a shape', requiresDocument: true, parse: args => MoveCommand.parse(args) }],
       ['scale', { syntax: ScaleCommand.syntax, description: 'scale geometry', requiresDocument: true, parse: args => ScaleCommand.parse(args) }],
       ['set', { syntax: SetCommand.syntax, description: 'set an attribute', requiresDocument: true, parse: args => SetCommand.parse(args) }],
