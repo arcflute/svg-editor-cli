@@ -1,0 +1,14 @@
+# 第四轮：基础编辑和历史
+
+开始日期：2026-10-30（Asia/Shanghai）。用户授权继续本地开发、暂缓推送。范围：move/scale/set/delete 与 undo/redo，按独立功能顺序提交；不实现分组、图层、read/save/canvas 或 SVG/XML。
+
+基线：c6f7284，工作区干净；typecheck 与原 164 项测试通过。第三轮提交尚未推送，不修改旧提交或提交时间。
+
+## 设计与实际进展
+
+- 移动：新增 MoveCommand；提取 EditCommand.execute→EditorSession.executeEdit，create 和 move 共用候选副本提交。具体命令只能操作传入的候选，活动文档仍由会话私有持有。移除原会话专用 create 方法，统一入口为后续历史准备。移动摘要统一为 `type#id moved by (dx,dy)`；具体坐标由 show/tree 查询，无按图形类型显示分支。历史尚未接入。
+- 缩放、属性、删除和历史：待实现。
+
+## 验证记录
+
+1. 移动：`npm run typecheck` 退出 0；`npm test -- tests/application/MoveCommand.test.ts tests/application/Commands.test.ts` 通过，2 文件 84 项。覆盖旧创建/查询回归以及新移动功能；未把后续历史标为完成。

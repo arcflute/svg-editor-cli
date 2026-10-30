@@ -1,11 +1,11 @@
 import { ArgumentParser } from './ArgumentParser.js';
-import { Command } from './Command.js';
+import { EditCommand } from './EditCommand.js';
 import { InputError } from './InputError.js';
 import type { CommandToken } from './CommandToken.js';
-import type { EditorSession } from './EditorSession.js';
+import type { SvgDocument } from '../domain/SvgDocument.js';
 import type { ShapeFactory } from '../domain/ShapeFactory.js';
 
-export class CreateCommand extends Command {
+export class CreateCommand extends EditCommand {
   public static readonly syntax = 'create <type> <id> [params...] [in <containerId>]';
   readonly #attributes: Readonly<Record<string, string | number>>;
 
@@ -32,8 +32,9 @@ export class CreateCommand extends Command {
     return new CreateCommand(type, id, ArgumentParser.shapeAttributes(parameters, description), parentId);
   }
 
-  public override execute(session: EditorSession): readonly string[] {
-    const created = session.create(this.type, this.id, this.#attributes, this.parentId);
-    return Object.freeze([`${created.type}#${created.id} created${created.parent === null ? '' : ` in g#${created.parent}`}`]);
+  public override apply(candidate: SvgDocument, factory: ShapeFactory): readonly string[] {
+    const shape = factory.create(this.type, this.id, this.#attributes);
+    candidate.insert(shape, this.parentId);
+    return [`${shape.type}#${shape.id} created${this.parentId === undefined ? '' : ` in g#${this.parentId}`}`];
   }
 }

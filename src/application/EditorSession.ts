@@ -3,6 +3,7 @@ import { SvgDocument } from '../domain/SvgDocument.js';
 import { InputError } from './InputError.js';
 import type { Shape } from '../domain/Shape.js';
 import type { ShowView, TreeNodeView, TreeView } from './DocumentView.js';
+import type { EditCommand } from './EditCommand.js';
 
 export class EditorSession {
   #document: SvgDocument | null = null;
@@ -18,11 +19,9 @@ export class EditorSession {
     return result;
   }
 
-  public create(type: string, id: string, attributes: Readonly<Record<string, string | number>>, parentId?: string): Readonly<{ type: string; id: string; parent: string | null }> {
+  public executeEdit(command: EditCommand): readonly string[] {
     const candidate = this.requireDocument().clone();
-    const shape = this.factory.create(type, id, attributes);
-    candidate.insert(shape, parentId);
-    const result = Object.freeze({ type: shape.type, id: shape.id, parent: parentId ?? null });
+    const result = Object.freeze([...command.apply(candidate, this.factory)]);
     this.#document = candidate;
     return result;
   }
