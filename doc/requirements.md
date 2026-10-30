@@ -28,13 +28,13 @@
 | CMD-003 | §3 | `move <id> <dx> <dy>` 按增量平移，容器整体平移 | A/D | MoveCommand/History：负数/浮点、深层一次移动、line 两端、失败与撤销 | 已验证 |
 | CMD-004 | §3、§4.2 | `scale <id> <factor>` 同时缩放全部位置和尺寸；容器递归 | A/D | ScaleCommand/History：五叶子/多层、非正错误、尺寸溢出、一次撤销 | 已验证 |
 | CMD-005 | §3、§4.1 | `set <id> <attr> <value>` 按白名单设置；容器也参与统一操作 | A/D/C | SetCommand/History：全部字段、文本原值、容器样式、非法值/字段、缺省样式恢复 | 已验证 |
-| CMD-006 | §3、§4.2 | `group <newGid> <id1> <id2>…` 创建组，摘出旧父级并保持相对顺序 | A/D | 同父、跨父分组，父级/插入位置/子序按 A-01；任何 ID 错误整体回滚 | 未实现 |
-| CMD-007 | §3、§4.2 | `ungroup <gid>` 子节点按原顺序提升并替代原组位置 | A/D | 嵌套组解散、空组、非容器拒绝；根级容器拒绝 | 未实现 |
-| CMD-008 | §3 | `addto <gid> <id>` 将已有节点移入组末尾 | A/D | 跨父、同父重排、目标不存在/非组、循环约束；历史一次还原 | 未实现 |
-| CMD-009 | §3 | `front <id>` 移到同级视觉最前，`back <id>` 移到同级视觉最后 | A/D | SVG 后绘制在上层：front 放 children 末尾，back 放首位；不跨父级 | 未实现 |
+| CMD-006 | §3、§4.2 | `group <newGid> <id1> <id2>…` 创建组，摘出旧父级并保持相对顺序 | A/D | 同父、跨父分组，父级/插入位置/子序按 A-01；任何 ID 错误整体回滚 | 已验证 |
+| CMD-007 | §3、§4.2 | `ungroup <gid>` 子节点按原顺序提升并替代原组位置 | A/D | 嵌套组解散、空组、非容器拒绝；根级容器拒绝 | 已验证 |
+| CMD-008 | §3 | `addto <gid> <id>` 将已有节点移入组末尾 | A/D | 跨父、同父重排、目标不存在/非组、循环约束；历史一次还原 | 已验证 |
+| CMD-009 | §3 | `front <id>` 移到同级视觉最前，`back <id>` 移到同级视觉最后 | A/D | SVG 后绘制在上层：front 放 children 末尾，back 放首位；不跨父级 | 已验证 |
 | CMD-010 | §3、§5.1 | `tree [id]` 显示全树或子树，内联关键几何属性 | A/D/C | Commands/CliStartup 固定输出：尺寸、枝线、六类型、嵌套及顺序；不改文档 | 已验证 |
 | CMD-011 | §3、§5.2 | `show <id>` 显示类型、ID、父级及属性明细 | A/D/C | 固定属性/文本/样式输出；根 parent=svg，嵌套 parent=g#ID；缺 ID 精确报错 | 已验证 |
-| CMD-012 | §3 | `help` 列出本阶段所有命令与语法 | A/C | 无文档也可用，19 命令/6 种 create 语法同源；8 个后续命令明确未实现，无 box 正向类型 | 已验证 |
+| CMD-012 | §3 | `help` 列出本阶段所有命令与语法 | A/C | 无文档也可用，19 命令/6 种 create 语法同源；3 个后续命令明确未实现，无 box 正向类型 | 已验证 |
 
 ## 六类型参数与 set 白名单
 
@@ -63,14 +63,14 @@
 | CLI-005 | §4.1；本轮边界 | 所有 create 支持末尾 in；引号内的 in 不是结构语法 | C/A | 六类型 root/in 参数化测试，文本 stay in shape、引用 in、名为 in 的父级均不误拆 | 已验证 |
 | CLI-006 | §2、§6 | 编辑成功输出结果摘要，查询直接输出内容 | A/C | 每条成功编辑只有对应摘要；失败不出现 created/saved 等成功信息 | 未实现 |
 | CLI-007 | §2、§4.2 | 所有业务错误 `error:` 前缀，一行一条 | A/C/I | 表中所有错误精确检查；多行异常不得原样喷出堆栈 | 未实现 |
-| CLI-008 | 本轮约束 | 已知但未实现命令明确报错，不伪造成功 | A/C/T | 十一命令已实现；其他八命令报 command not implemented yet，未知/exit/quit 报 unknown command | 已验证 |
+| CLI-008 | 本轮约束 | 已知但未实现命令明确报错，不伪造成功 | A/C/T | 十六命令已实现；其他三命令报 command not implemented yet，未知/exit/quit 报 unknown command | 已验证 |
 | ID-001 | §2、§4.2 | 所有图形含 g 的 ID 在整个文档唯一、大小写敏感 | D/A/I | r1 与 R1 可并存；跨组同名拒绝，报 `id already exists`；查不到报 `no such shape` | 未实现 |
-| ID-002 | §2 | create/group 必须显式 ID | C/A | 缺 ID 拒绝；不替用户生成 CLI ID | 未实现 |
+| ID-002 | §2 | create/group 必须显式 ID | C/A | 缺 ID 拒绝；不替用户生成 CLI ID | 已验证 |
 | ID-003 | §2、§6 | 外部 SVG 缺 ID 自动使用标签名+序号，并打印警告 | I/D/A/C | 无名 rect/g，精确 `warning: assigned id rect1 to unnamed <rect>`；失败读入不提前发成功警告 | 未实现 |
 | ID-004 | §2 唯一性；本轮边界 | 自动 ID 不能与文件任意位置的显式 ID 冲突 | I/D | 首部缺 ID、末部显式 rect1，须预扫描保留 rect1 后再分配；显式重复 ID 拒绝 | 未实现 |
 | STR-001 | §0、§2.1、§6.1 | 容器可递归嵌套；每节点有唯一父级；根代表 SVG 文档 | D | SvgDocument.test.ts、Clone.test.ts、Flowchart.test.ts 验证多层树/重挂接/删除/索引；仅领域 API | 已验证 |
-| STR-002 | §3、§4.2；本轮边界 | group/addto 不得产生自环或祖先后代环 | D/A | group 同时选祖先和后代；addto 自身/后代；失败树和历史不变 | 未实现 |
-| STR-003 | §4.2 | SVG 根直接子节点的 g 禁止 ungroup | D/A | 精确 `error: cannot ungroup top-level container: scene` | 未实现 |
+| STR-002 | §3、§4.2；本轮边界 | group/addto 不得产生自环或祖先后代环 | D/A | group 同时选祖先和后代；addto 自身/后代；失败树和历史不变 | 已验证 |
+| STR-003 | §4.2 | SVG 根直接子节点的 g 禁止 ungroup | D/A | 精确 `error: cannot ungroup top-level container: scene` | 已验证 |
 | STR-004 | §3、§0 | 有序子节点承载图层；移动父级及解组不丢相对顺序 | D/I | group/addto/ungroup/front/back 前后顺序和 SVG 元素顺序一致 | 未实现 |
 | STR-005 | §4.1、§4.2 | in 目标必须存在且为 g | D/A | Commands.test.ts：两类规范错误，原树/顺序不变，失败 ID 可重用 | 已验证 |
 | GEO-001 | §2、§3 | 左上原点、x 右 y 下、px、支持浮点 | D/C/I | 负坐标、小数、读写一致；finite 数值约束暂定见 A-05 | 未实现 |
@@ -79,10 +79,10 @@
 
 | 编号 | 原文章节 | 需求描述 | 计划模块 | 验收方法或场景 | 当前状态 |
 |---|---|---|---|---|---|
-| HIS-001 | §3、§4.3 | `undo` 撤销上一条成功编辑 | A/D | 创建/删除/结构变化/几何/属性分别撤销，类方法与索引仍可用 | 未实现 |
-| HIS-002 | §3、§4.3 | `redo` 重做撤销的编辑 | A/D | 多步撤销后按序重做，父级、顺序、属性缺省完全恢复 | 未实现 |
-| HIS-003 | §4.3 | 一条编辑命令对应一个 undo 单元 | A | group 多对象、容器递归变换/删除一次 undo 全恢复 | 未实现 |
-| HIS-004 | §3、§4.3；本轮边界 | undo 后成功新编辑清空 redo；失败新编辑不能清空 | A | undo→无效 edit→redo 仍成功；undo→有效 edit→redo 无可重做项 | 未实现 |
+| HIS-001 | §3、§4.3 | `undo` 撤销上一条成功编辑 | A/D | 创建/删除/结构变化/几何/属性分别撤销，类方法与索引仍可用 | 已验证 |
+| HIS-002 | §3、§4.3 | `redo` 重做撤销的编辑 | A/D | 多步撤销后按序重做，父级、顺序、属性缺省完全恢复 | 已验证 |
+| HIS-003 | §4.3 | 一条编辑命令对应一个 undo 单元 | A | group 多对象、容器递归变换/删除一次 undo 全恢复 | 已验证 |
+| HIS-004 | §3、§4.3；本轮边界 | undo 后成功新编辑清空 redo；失败新编辑不能清空 | A | undo→无效 edit→redo 仍成功；undo→有效 edit→redo 无可重做项 | 已验证 |
 | HIS-005 | §4.3 | 成功 init/read/save/修改 canvas 后禁用 undo/redo，报 `error: undo not allowed after io command` | A | 每种文档操作分别检查两命令；失败 IO 不改变禁用状态 | 未实现 |
 | HIS-006 | §4.3；本轮边界 | 下一次成功编辑解禁，失败编辑不能解禁 | A | IO→失败 edit→undo 仍禁用；IO→成功 edit→undo 允许；旧历史处理见 A-02 | 未实现 |
 | HIS-007 | §3、§4.3 | tree/show/help 和 canvas 查询不入历史且不改变禁用状态 | A/C | 在可用和禁用两种状态下查询，比较两栈与会话 | 未实现 |
@@ -190,3 +190,5 @@
 | R4-009 | §6.1 版本 A；本轮范围 | 真实 CLI 编辑/撤销/重做回放、错误恢复及 EOF 消费 | C/A/T/examples | Round4Replay.test.ts 固定树/错误列表；开发与编译回放退出 0、stderr 空、输出一致 | 已验证 |
 
 第四轮累计 109 条需求/子需求，66 条已验证、43 条未实现。typecheck、292 项测试、build、两入口回放均通过。HIS 原项涉及未来结构命令、所有 IO 屏障与 canvas 查询，保留未实现状态；当前五编辑历史和 init 屏障以 R4-005–008 单独验收。分步本地提交不等于远程已同步。
+
+当前补充：分组/图层与全部十种编辑历史已由 StructureCommands.test.ts、Grouping.test.ts 和既有历史测试验证；324 项通过。完整 IO 事务与最终验收仍待后两部分。上述第四轮统计为历史记录。

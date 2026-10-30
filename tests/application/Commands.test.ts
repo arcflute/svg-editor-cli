@@ -222,7 +222,7 @@ describe('queries, help and immutable boundaries', () => {
     expect(lines).toContain('  create rect <id> <x> <y> <w> <h> [fill] [in <containerId>]');
     expect(lines).toContain('  create line <id> <x1> <y1> <x2> <y2> [stroke] [in <containerId>]');
     expect(lines).toContain('  create text <id> <x> <y> "content" [in <containerId>]');
-    for (const name of ['read', 'save', 'canvas', 'group', 'ungroup', 'addto', 'front', 'back']) {
+    for (const name of ['read', 'save', 'canvas']) {
       expect(lines.find(line => line.startsWith(`  ${name} `))).toContain('[not implemented yet]');
       expect(() => run(name)).toThrow(`command not implemented yet: ${name}`);
     }

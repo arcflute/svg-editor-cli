@@ -49,6 +49,19 @@ export class SvgDocument extends TreeNode {
     this.reparentNode(this.require(id), this.destination(parentId), position);
   }
 
+  public group(container: Shape, ids: readonly string[]): void {
+    this.groupNodes(container, ids.map(id => this.require(id)));
+  }
+
+  public ungroup(id: string): void { this.ungroupNode(this.destination(id)); }
+
+  public reorder(id: string, edge: 'front' | 'back'): void {
+    const shape = this.require(id);
+    const parent = shape.parent!;
+    const siblings = 'id' in parent ? parent.children : parent.roots;
+    this.reparentNode(shape, parent, edge === 'front' ? siblings.length - 1 : 0);
+  }
+
   public clone(): SvgDocument {
     return new SvgDocument(this.width, this.height, this.roots.map(root => root.clone()));
   }

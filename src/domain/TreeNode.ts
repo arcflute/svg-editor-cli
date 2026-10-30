@@ -59,6 +59,81 @@ export abstract class TreeNode {
     return this.requireIndex().get(id);
   }
 
+  /** Prepare the complete restructuring before changing any links, order or index. */
+  protected groupNodes(group: TreeNode, selection: readonly TreeNode[]): void {
+    const index = this.requireIndex();
+    this.assertDetached(group);
+    if (!group.acceptsChildren || group.#children.length !== 0) {
+      throw new DomainError('INVALID_GROUP', 'grouping requires an empty detached container');
+    }
+    if (index.has(group.nodeId!)) throw new DomainError('DUPLICATE_ID', `id already exists: ${group.nodeId}`);
+    if (selection.length === 0) throw new DomainError('EMPTY_SELECTION', 'group requires at least one shape');
+    const selected = new Set(selection);
+    if (selected.size !== selection.length) throw new DomainError('DUPLICATE_SELECTION', 'duplicate shape in group selection');
+    for (const node of selection) {
+      this.assertOwned(node);
+      for (let ancestor = node.#parent; ancestor !== null; ancestor = ancestor.#parent) {
+        if (selected.has(ancestor)) {
+          throw new DomainError('CYCLE', `cannot group a container into its own descendant: ${ancestor.nodeId}`);
+        }
+      }
+    }
+    let parent = selection[0]!.#parent!;
+    while (!selection.every(node => {
+      for (let ancestor = node.#parent; ancestor !== null; ancestor = ancestor.#parent) {
+        if (ancestor === parent) return true;
+      }
+      return false;
+    })) parent = parent.#parent!;
+    const ordered: TreeNode[] = [];
+    const visit = (node: TreeNode): void => {
+      if (selected.has(node)) ordered.push(node);
+      for (const child of node.#children) visit(child);
+    };
+    visit(parent);
+    const branches = new Set(selection.map(node => {
+      let branch = node;
+      while (branch.#parent !== parent) branch = branch.#parent!;
+      return branch;
+    }));
+    const nextChildren = new Map<TreeNode, TreeNode[]>();
+    for (const node of selection) nextChildren.set(node.#parent!, node.#parent!.#children.filter(child => !selected.has(child)));
+    const siblings: TreeNode[] = [];
+    let inserted = false;
+    for (const child of parent.#children) {
+      if (!inserted && branches.has(child)) { siblings.push(group); inserted = true; }
+      if (!selected.has(child)) siblings.push(child);
+    }
+    nextChildren.set(parent, siblings);
+    const nextIndex = new Map(index);
+    nextIndex.set(group.nodeId!, group);
+    // Commit only precomputed values; no validation or callbacks below.
+    for (const [owner, children] of nextChildren) owner.#children = children;
+    group.#children = ordered;
+    group.#parent = parent;
+    group.#document = this;
+    for (const node of ordered) node.#parent = group;
+    this.#index = nextIndex;
+  }
+
+  protected ungroupNode(group: TreeNode): void {
+    const index = this.requireIndex();
+    this.assertContainer(group);
+    const parent = group.#parent;
+    if (parent === this) throw new DomainError('TOP_LEVEL_GROUP', `cannot ungroup top-level container: ${group.nodeId}`);
+    if (parent === null) throw new DomainError('INVALID_ROOT', 'cannot ungroup the document root');
+    const promoted = [...group.#children];
+    const siblings = parent.#children.flatMap(child => child === group ? promoted : [child]);
+    const nextIndex = new Map(index);
+    nextIndex.delete(group.nodeId!);
+    parent.#children = siblings;
+    for (const child of promoted) child.#parent = parent;
+    group.#children = [];
+    group.#parent = null;
+    group.#document = null;
+    this.#index = nextIndex;
+  }
+
   protected insertNode(node: TreeNode, parent: TreeNode, position?: number): void {
     const currentIndex = this.requireIndex();
     this.assertContainer(parent);

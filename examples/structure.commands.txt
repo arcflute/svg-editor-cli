@@ -1,0 +1,16 @@
+init
+create g scene
+create g left in scene
+create rect a 10 20 30 40 in left
+create text label 15 40 "分组" in left
+create g right in scene
+create circle b 100 100 20 in right
+group pair b a
+tree
+undo
+redo
+ungroup pair
+addto right label
+front a
+back b
+tree

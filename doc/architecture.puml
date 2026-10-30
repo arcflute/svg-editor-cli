@@ -1,6 +1,6 @@
 @startuml
 !pragma layout smetana
-title SVG CLI - basic edits and snapshot history (round 4)
+title SVG CLI - grouping and z-order (part 1)
 skinparam componentStyle rectangle
 skinparam shadowing false
 
@@ -11,7 +11,7 @@ package "src/cli" as CLI {
   component "CliShell / Tokenizer\nstdin, stdout, stderr" as Shell
 }
 package "src/application" as Application {
-  component "CommandDispatcher / ArgumentParser\nEditCommand: Create / Move / Scale / Set / Delete\nCommand: Init / Tree / Show / Help / Undo / Redo" as Commands
+  component "CommandDispatcher / ArgumentParser\nEditCommand: Create / Move / Scale / Set / Delete\nGroup / Ungroup / AddTo / Front / Back\nCommand: Init / Tree / Show / Help / Undo / Redo" as Commands
   component "EditorSession\nprepare document + history -> replace state" as Session
   component "HistoryManager / HistoryEntry\nprivate before + after snapshots\nnew stacks on each transition" as History
   component "DocumentView / TextPresenter\nimmutable values -> output lines" as Presentation
@@ -52,8 +52,8 @@ note bottom of Domain
   clone() preserves instances, links and ID index.
 end note
 note bottom of Commands
-  Implemented: 11 commands, five editing commands.
-  Grouping, z-order and IO remain planned.
+  Implemented: 16 commands, ten editing commands.
+  Read / save / canvas remain planned.
   Only two name dispatch locations:
   CommandDispatcher and ShapeFactory.
   Future: registered command / ShapeProvider factories.

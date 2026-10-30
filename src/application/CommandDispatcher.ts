@@ -1,3 +1,8 @@
+import { BackCommand } from './BackCommand.js';
+import { FrontCommand } from './FrontCommand.js';
+import { AddToCommand } from './AddToCommand.js';
+import { UngroupCommand } from './UngroupCommand.js';
+import { GroupCommand } from './GroupCommand.js';
 import { CreateCommand } from './CreateCommand.js';
 import { DeleteCommand } from './DeleteCommand.js';
 import { HelpCommand } from './HelpCommand.js';
@@ -38,11 +43,11 @@ export class CommandDispatcher {
       ['move', { syntax: MoveCommand.syntax, description: 'translate a shape', requiresDocument: true, parse: args => MoveCommand.parse(args) }],
       ['scale', { syntax: ScaleCommand.syntax, description: 'scale geometry', requiresDocument: true, parse: args => ScaleCommand.parse(args) }],
       ['set', { syntax: SetCommand.syntax, description: 'set an attribute', requiresDocument: true, parse: args => SetCommand.parse(args) }],
-      ['group', { syntax: 'group <newGid> <id1> <id2>...', description: 'group existing shapes' }],
-      ['ungroup', { syntax: 'ungroup <gid>', description: 'ungroup a nested container' }],
-      ['addto', { syntax: 'addto <gid> <id>', description: 'reparent a shape' }],
-      ['front', { syntax: 'front <id>', description: 'move to front among siblings' }],
-      ['back', { syntax: 'back <id>', description: 'move to back among siblings' }],
+      ['group', { syntax: GroupCommand.syntax, description: 'group existing shapes', requiresDocument: true, parse: args => GroupCommand.parse(args) }],
+      ['ungroup', { syntax: UngroupCommand.syntax, description: 'ungroup a nested container', requiresDocument: true, parse: args => UngroupCommand.parse(args) }],
+      ['addto', { syntax: AddToCommand.syntax, description: 'reparent a shape', requiresDocument: true, parse: args => AddToCommand.parse(args) }],
+      ['front', { syntax: FrontCommand.syntax, description: 'move to front among siblings', requiresDocument: true, parse: args => FrontCommand.parse(args) }],
+      ['back', { syntax: BackCommand.syntax, description: 'move to back among siblings', requiresDocument: true, parse: args => BackCommand.parse(args) }],
       ['tree', { syntax: TreeCommand.syntax, description: 'show document or subtree', requiresDocument: true, parse: args => TreeCommand.parse(args) }],
       ['show', { syntax: ShowCommand.syntax, description: 'show attributes and parent', requiresDocument: true, parse: args => ShowCommand.parse(args) }],
       ['help', { syntax: HelpCommand.syntax, description: 'show commands', parse: args => HelpCommand.parse(args, this.descriptions(), factory.descriptions()) }],
