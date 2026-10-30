@@ -7,8 +7,10 @@
 ## 设计与实际进展
 
 - 移动：新增 MoveCommand；提取 EditCommand.execute→EditorSession.executeEdit，create 和 move 共用候选副本提交。具体命令只能操作传入的候选，活动文档仍由会话私有持有。移除原会话专用 create 方法，统一入口为后续历史准备。移动摘要统一为 `type#id moved by (dx,dy)`；具体坐标由 show/tree 查询，无按图形类型显示分支。历史尚未接入。
-- 缩放、属性、删除和历史：待实现。
+- 缩放：ScaleCommand 校验完整数值后调用模型 scale，位置与尺寸同乘；容器递归处理，文字内容/样式/画布尺寸不变。非正数使用原文规范错误，非有限词法输入先由通用数值解析器拒绝。
+- 属性、删除和历史：待实现。
 
 ## 验证记录
 
 1. 移动：`npm run typecheck` 退出 0；`npm test -- tests/application/MoveCommand.test.ts tests/application/Commands.test.ts` 通过，2 文件 84 项。覆盖旧创建/查询回归以及新移动功能；未把后续历史标为完成。
+2. 缩放：`npm run typecheck` 退出 0；`npm test -- tests/application/ScaleCommand.test.ts tests/application/Commands.test.ts` 通过，2 文件 87 项。
