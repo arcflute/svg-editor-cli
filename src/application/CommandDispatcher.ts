@@ -3,6 +3,7 @@ import { HelpCommand } from './HelpCommand.js';
 import { InitCommand } from './InitCommand.js';
 import { MoveCommand } from './MoveCommand.js';
 import { ScaleCommand } from './ScaleCommand.js';
+import { SetCommand } from './SetCommand.js';
 import { InputError } from './InputError.js';
 import { ShowCommand } from './ShowCommand.js';
 import { TreeCommand } from './TreeCommand.js';
@@ -33,7 +34,7 @@ export class CommandDispatcher {
       ['delete', { syntax: 'delete <id>', description: 'delete a subtree' }],
       ['move', { syntax: MoveCommand.syntax, description: 'translate a shape', requiresDocument: true, parse: args => MoveCommand.parse(args) }],
       ['scale', { syntax: ScaleCommand.syntax, description: 'scale geometry', requiresDocument: true, parse: args => ScaleCommand.parse(args) }],
-      ['set', { syntax: 'set <id> <attr> <value>', description: 'set an attribute' }],
+      ['set', { syntax: SetCommand.syntax, description: 'set an attribute', requiresDocument: true, parse: args => SetCommand.parse(args) }],
       ['group', { syntax: 'group <newGid> <id1> <id2>...', description: 'group existing shapes' }],
       ['ungroup', { syntax: 'ungroup <gid>', description: 'ungroup a nested container' }],
       ['addto', { syntax: 'addto <gid> <id>', description: 'reparent a shape' }],

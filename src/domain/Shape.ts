@@ -60,6 +60,15 @@ export abstract class Shape extends TreeNode {
     if (!this.setStyle(attribute, value)) this.setOwnAttribute(attribute, value);
   }
 
+  /** Neutral value kind for input adapters; geometry/text names come from the model itself. */
+  public attributeKind(attribute: string): 'number' | 'text' {
+    if (attribute === 'fill' || attribute === 'stroke') return 'text';
+    if (attribute === 'stroke-width') return 'number';
+    const own = this.ownAttributes;
+    if (!Object.hasOwn(own, attribute)) throw new DomainError('UNKNOWN_ATTRIBUTE', `unknown attribute: ${attribute}`);
+    return typeof own[attribute] === 'number' ? 'number' : 'text';
+  }
+
   public abstract clone(): Shape;
   protected abstract planMove(dx: number, dy: number): () => void;
   protected abstract planScale(factor: number): () => void;

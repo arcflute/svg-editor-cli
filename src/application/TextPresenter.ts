@@ -3,6 +3,10 @@ import type { ShowView, TreeNodeView, TreeView } from './DocumentView.js';
 
 /** Formats presentation values, never dispatches on shape types or modifies a model. */
 export class TextPresenter {
+  public attribute(name: string, value: string | number): string {
+    return this.fields({ [name]: value });
+  }
+
   public tree(view: TreeView): readonly string[] {
     const lines: string[] = [];
     if (view.canvas !== null) {
