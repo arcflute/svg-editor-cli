@@ -67,7 +67,7 @@ describe('CLI process smoke tests', () => {
     expect(result.stdout).toContain('g#node2\n├── rect#process  x=520 y=100 w=160 h=60 fill=#f5a623\n└── text#process-label  (545,135) "处理数据"');
     expect(result.stdout).toContain('text#start-label  parent=g#node1\n  x=155 y=135 text="开始"');
     expect(result.stdout).toContain('create text <id> <x> <y> "content" [in <containerId>]');
-    expect(result.stdout).toContain('undo — undo an edit [not implemented yet]');
+    expect(result.stdout).toContain('  undo — undo an edit\n');
   });
 
   it('drains a burst of commands before EOF in the same process', () => {

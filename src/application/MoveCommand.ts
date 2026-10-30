@@ -6,7 +6,9 @@ import type { SvgDocument } from '../domain/SvgDocument.js';
 export class MoveCommand extends EditCommand {
   public static readonly syntax = 'move <id> <dx> <dy>';
 
-  public constructor(private readonly id: string, private readonly dx: number, private readonly dy: number) { super(); }
+  public constructor(private readonly id: string, private readonly dx: number, private readonly dy: number) {
+    super(`move ${id} by (${dx},${dy})`);
+  }
 
   public static parse(args: readonly CommandToken[]): MoveCommand {
     ArgumentParser.count(args, 3, 3, this.syntax);

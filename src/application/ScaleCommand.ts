@@ -6,7 +6,7 @@ import type { SvgDocument } from '../domain/SvgDocument.js';
 export class ScaleCommand extends EditCommand {
   public static readonly syntax = 'scale <id> <factor>';
 
-  public constructor(private readonly id: string, private readonly factor: number) { super(); }
+  public constructor(private readonly id: string, private readonly factor: number) { super(`scale ${id} by ${factor}`); }
 
   public static parse(args: readonly CommandToken[]): ScaleCommand {
     ArgumentParser.count(args, 2, 2, this.syntax);

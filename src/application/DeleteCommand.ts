@@ -6,7 +6,7 @@ import type { SvgDocument } from '../domain/SvgDocument.js';
 export class DeleteCommand extends EditCommand {
   public static readonly syntax = 'delete <id>';
 
-  public constructor(private readonly id: string) { super(); }
+  public constructor(private readonly id: string) { super(`delete ${id}`); }
 
   public static parse(args: readonly CommandToken[]): DeleteCommand {
     ArgumentParser.count(args, 1, 1, this.syntax);

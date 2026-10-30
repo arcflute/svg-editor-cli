@@ -11,7 +11,7 @@ export class CreateCommand extends EditCommand {
 
   public constructor(private readonly type: string, private readonly id: string,
     attributes: Readonly<Record<string, string | number>>, private readonly parentId?: string) {
-    super();
+    super(`create ${type}#${id}`);
     this.#attributes = Object.freeze({ ...attributes });
   }
 

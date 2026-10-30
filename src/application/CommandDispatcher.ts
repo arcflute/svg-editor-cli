@@ -8,6 +8,8 @@ import { SetCommand } from './SetCommand.js';
 import { InputError } from './InputError.js';
 import { ShowCommand } from './ShowCommand.js';
 import { TreeCommand } from './TreeCommand.js';
+import { UndoCommand } from './UndoCommand.js';
+import { RedoCommand } from './RedoCommand.js';
 import type { Command } from './Command.js';
 import type { CommandDescription } from './CommandDescription.js';
 import type { CommandToken } from './CommandToken.js';
@@ -44,8 +46,8 @@ export class CommandDispatcher {
       ['tree', { syntax: TreeCommand.syntax, description: 'show document or subtree', requiresDocument: true, parse: args => TreeCommand.parse(args) }],
       ['show', { syntax: ShowCommand.syntax, description: 'show attributes and parent', requiresDocument: true, parse: args => ShowCommand.parse(args) }],
       ['help', { syntax: HelpCommand.syntax, description: 'show commands', parse: args => HelpCommand.parse(args, this.descriptions(), factory.descriptions()) }],
-      ['undo', { syntax: 'undo', description: 'undo an edit' }],
-      ['redo', { syntax: 'redo', description: 'redo an edit' }],
+      ['undo', { syntax: UndoCommand.syntax, description: 'undo an edit', requiresDocument: true, parse: args => UndoCommand.parse(args) }],
+      ['redo', { syntax: RedoCommand.syntax, description: 'redo an edit', requiresDocument: true, parse: args => RedoCommand.parse(args) }],
     ]);
   }
 

@@ -1,6 +1,6 @@
-# 第三轮命令样例
+# 可执行命令样例
 
-[round3.commands.txt](round3.commands.txt) 使用作业 §6.1 版本 A 的八个图形元素，执行 init、八次 create、全文档/子树 tree、show 和 help。本轮不包含 move、undo、save，不生成 SVG。
+[round3.commands.txt](round3.commands.txt) 使用作业 §6.1 版本 A 的八个图形元素，执行 init、八次 create、全文档/子树 tree、show 和 help。此脚本不包含 move、undo、save，不生成 SVG。
 
 在项目根用 PowerShell 回放（UTF-8 防止中文经管道变成问号）：
 
@@ -29,4 +29,23 @@ svg (800x600)
 
 输入约定：去掉行首空白后以 `#` 开头的是整行注释；命令内部的十六进制颜色保留，不支持行尾注释。text 内容须整体双引号包裹，保留中文、首尾空格和空串；引号内只支持 `\"`、`\\` 两种转义，未知转义报错；引号外反斜杠为普通字符。引号片段必须由空白分隔，不拼接相邻片段。`in` 仅在尾部且未被引用时作为父容器子句。数值允许有限十进制/科学记数法，不接受 `10px`、NaN、Infinity 或空串。详见 [D-07](../doc/decisions.md#d-07-第三轮分词和参数边界)。
 
-后续才添加整体变换、撤销重做、保存读回及浏览器验证；box 留到插件化阶段。样例须随功能、需求和实际输出同步更新。
+## 第四轮编辑与历史回放
+
+[round4.commands.txt](round4.commands.txt) 在同一流程图上移动 node2、撤销/重做、缩放 node1、修改文本和容器样式、删除并恢复整组。上面的回放命令把 round3 换成 round4 即可；两个入口已实际执行，退出 0、stderr 空、业务输出一致。
+
+真实回放节选（撤销删除后）：
+
+```text
+undone: delete node1
+svg> svg (800x600)
+└── g#flowchart
+    ├── g#node1
+    │   ├── rect#start  x=60 y=50 w=80 h=30 fill=#4a90d9
+    │   └── text#start-label  (77.5,67.5) "开始"
+    ├── g#node2  stroke-width=2
+    │   ├── rect#process  x=520 y=200 w=160 h=60 fill=#f5a623
+    │   └── text#process-label  (545,235) "处理数据 v2"
+    └── line#arrow1  (280,130) -> (520,130) stroke=black
+```
+
+成功 init 清空并禁用历史，下一次成功编辑解禁；失败编辑保留 redo，成功新编辑清 redo。set 的文本值允许单个未引用词；空串、空格仍需引号。create text 的 content 保留第三轮引用要求。还没有保存读回及浏览器验证；box 留到插件化阶段。

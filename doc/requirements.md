@@ -2,7 +2,7 @@
 
 基线：根目录 [phase_cli_1.md](../phase_cli_1.md) 全文（§0–§6.1），读取日期 2026-10-26（Asia/Shanghai）。原文不作修改。稳定编号新增时递增，不因重排而重新编号。
 
-第一轮完成分析/初始化，第二轮完成领域/结构/克隆，第三轮接通 init/create/tree/show/help。状态只使用：**未实现**（完整验收尚未实现，可能已有单独列出的子项）、**已实现但未验证**、**已验证**。验证必须有证据；本轮五命令的创建/查询与词法能力已验证，历史、IO、其余编辑和最终交付仍是计划，不能用子集完成代替完整验收。
+第一轮分析/初始化，第二轮领域/结构/克隆，第三轮创建/查询，第四轮基础编辑与快照历史。状态只使用：**未实现**（完整验收尚未实现，可能已有单独列出的子项）、**已实现但未验证**、**已验证**。当前十一种命令及其历史子集已验证；group/IO/canvas 等完整场景与最终交付仍是计划，不能用子集完成代替完整验收。
 
 来源标为“本轮约束”的是用户补充，不冒充作业原文。用户概括与原文总体一致；§3 将 canvas 置于文档类，而 §4.3 明确仅“canvas 修改尺寸”禁用历史，以 §4.3 为准。§4.4、§6.1 版本 B 的 box/插件属于未来阶段，不纳入本阶段正向功能验收。§4.2 的复合图形 ungroup 错误也留到该阶段。
 
@@ -24,17 +24,17 @@
 | 编号 | 原文章节 | 需求描述 | 计划模块 | 验收方法或场景 | 当前状态 |
 |---|---|---|---|---|---|
 | CMD-001 | §3、§4.1 | `create <type> <id> [params…] [in <containerId>]`，省略父级挂根 | A/D/C | Commands.test.ts：六类型参数、默认/指定父级、重复 ID、尾部 in；撤销单元拆到 HIS-003，尚未实现 | 已验证 |
-| CMD-002 | §3 | `delete <id>` 删除叶子或容器全部子孙 | A/D | 所有子孙从树和索引消失，undo 恢复层级和顺序 | 未实现 |
-| CMD-003 | §3 | `move <id> <dx> <dy>` 按增量平移，容器整体平移 | A/D | 正负浮点偏移，嵌套后每个叶子恰好移动一次，line 两端同步 | 未实现 |
-| CMD-004 | §3、§4.2 | `scale <id> <factor>` 同时缩放全部位置和尺寸；容器递归 | A/D | rect 的 x/y/width/height、圆心/半径、椭圆、line 两端、text x/y；嵌套恰好一次；0/负数拒绝 | 未实现 |
-| CMD-005 | §3、§4.1 | `set <id> <attr> <value>` 按白名单设置；容器也参与统一操作 | A/D/C | 各类型全部合法字段、text 内容、容器公共属性；非法字段/值不变 | 未实现 |
+| CMD-002 | §3 | `delete <id>` 删除叶子或容器全部子孙 | A/D | DeleteCommand/History 测试：子孙从树和索引消失，undo 恢复父级/顺序 | 已验证 |
+| CMD-003 | §3 | `move <id> <dx> <dy>` 按增量平移，容器整体平移 | A/D | MoveCommand/History：负数/浮点、深层一次移动、line 两端、失败与撤销 | 已验证 |
+| CMD-004 | §3、§4.2 | `scale <id> <factor>` 同时缩放全部位置和尺寸；容器递归 | A/D | ScaleCommand/History：五叶子/多层、非正错误、尺寸溢出、一次撤销 | 已验证 |
+| CMD-005 | §3、§4.1 | `set <id> <attr> <value>` 按白名单设置；容器也参与统一操作 | A/D/C | SetCommand/History：全部字段、文本原值、容器样式、非法值/字段、缺省样式恢复 | 已验证 |
 | CMD-006 | §3、§4.2 | `group <newGid> <id1> <id2>…` 创建组，摘出旧父级并保持相对顺序 | A/D | 同父、跨父分组，父级/插入位置/子序按 A-01；任何 ID 错误整体回滚 | 未实现 |
 | CMD-007 | §3、§4.2 | `ungroup <gid>` 子节点按原顺序提升并替代原组位置 | A/D | 嵌套组解散、空组、非容器拒绝；根级容器拒绝 | 未实现 |
 | CMD-008 | §3 | `addto <gid> <id>` 将已有节点移入组末尾 | A/D | 跨父、同父重排、目标不存在/非组、循环约束；历史一次还原 | 未实现 |
 | CMD-009 | §3 | `front <id>` 移到同级视觉最前，`back <id>` 移到同级视觉最后 | A/D | SVG 后绘制在上层：front 放 children 末尾，back 放首位；不跨父级 | 未实现 |
 | CMD-010 | §3、§5.1 | `tree [id]` 显示全树或子树，内联关键几何属性 | A/D/C | Commands/CliStartup 固定输出：尺寸、枝线、六类型、嵌套及顺序；不改文档 | 已验证 |
 | CMD-011 | §3、§5.2 | `show <id>` 显示类型、ID、父级及属性明细 | A/D/C | 固定属性/文本/样式输出；根 parent=svg，嵌套 parent=g#ID；缺 ID 精确报错 | 已验证 |
-| CMD-012 | §3 | `help` 列出本阶段所有命令与语法 | A/C | 无文档也可用，19 命令/6 种 create 语法同源；14 个后续命令明确未实现，无 box 正向类型 | 已验证 |
+| CMD-012 | §3 | `help` 列出本阶段所有命令与语法 | A/C | 无文档也可用，19 命令/6 种 create 语法同源；8 个后续命令明确未实现，无 box 正向类型 | 已验证 |
 
 ## 六类型参数与 set 白名单
 
@@ -43,13 +43,13 @@
 | 编号 | 原文章节 | 需求描述（位置参数；附加白名单） | 计划模块 | 验收方法或场景 | 当前状态 |
 |---|---|---|---|---|---|
 | SHP-001 | §4.1 | rect：`id x y w h [fill]`；`x y width height` | D/A | 参数映射 w→width、h→height；逐字段 set/move/scale/读回 | 未实现 |
-| SHP-002 | §4.1 | circle：`id cx cy r [fill]`；`cx cy r` | D/A | 圆心和半径；禁止 width 等其他类型字段 | 未实现 |
-| SHP-003 | §4.1 | ellipse：`id cx cy rx ry [fill]`；`cx cy rx ry` | D/A | 双半径和圆心，缺参数/多参数拒绝 | 未实现 |
-| SHP-004 | §4.1 | line：`id x1 y1 x2 y2 [stroke]`；`x1 y1 x2 y2` | D/A | 两端几何、可选 stroke，不误当 fill | 未实现 |
+| SHP-002 | §4.1 | circle：`id cx cy r [fill]`；`cx cy r` | D/A | 领域/Commands/SetCommand：圆心/半径及其他类型字段拒绝 | 已验证 |
+| SHP-003 | §4.1 | ellipse：`id cx cy rx ry [fill]`；`cx cy rx ry` | D/A | 领域/Commands/SetCommand：双半径/圆心及参数边界 | 已验证 |
+| SHP-004 | §4.1 | line：`id x1 y1 x2 y2 [stroke]`；`x1 y1 x2 y2` | D/A | 领域/Commands/SetCommand：两端几何、可选 stroke、不误当 fill | 已验证 |
 | SHP-005 | §4.1 | text：`id x y "content"`；`x y text` | D/A/C/I | 空格、中文、空文本、XML 转义；无额外 font-size 白名单 | 未实现 |
-| SHP-006 | §4.1、§2.1 | g：`id`；只有公共白名单，通过 Composite 操作子孙 | D/A | 空组/嵌套组，公共属性写在 g 上，禁止几何字段 | 未实现 |
+| SHP-006 | §4.1、§2.1 | g：`id`；只有公共白名单，通过 Composite 操作子孙 | D/A | Move/Scale/Set/DeleteCommand：空组/嵌套组、公共样式不覆盖孩子、拒绝几何字段 | 已验证 |
 | SHP-007 | §4.1 | 省略 fill/stroke 时不写入默认属性 | D/I | create→save→read，字段仍缺省；不能写 black/none 替代“未设置” | 未实现 |
-| SHP-008 | §4.1 | 非白名单字段报 `error: unknown attribute: <attr>` | D/A/C | id、transform、font-size、跨类型字段、label 均拒绝 | 未实现 |
+| SHP-008 | §4.1 | 非白名单字段报 `error: unknown attribute: <attr>` | D/A/C | SetCommand/领域/CLI：id、transform、font-size、跨类型字段、label 精确拒绝 | 已验证 |
 | SHP-009 | §3、§4.4 | 只内置 rect/circle/ellipse/line/text/g；box 报未知类型 | D/A/C | 工厂/应用测试 box 与未知类型精确错误，CLI 统一 error:；失败不占用 ID | 已验证 |
 
 ## CLI 协议、ID 与结构
@@ -63,7 +63,7 @@
 | CLI-005 | §4.1；本轮边界 | 所有 create 支持末尾 in；引号内的 in 不是结构语法 | C/A | 六类型 root/in 参数化测试，文本 stay in shape、引用 in、名为 in 的父级均不误拆 | 已验证 |
 | CLI-006 | §2、§6 | 编辑成功输出结果摘要，查询直接输出内容 | A/C | 每条成功编辑只有对应摘要；失败不出现 created/saved 等成功信息 | 未实现 |
 | CLI-007 | §2、§4.2 | 所有业务错误 `error:` 前缀，一行一条 | A/C/I | 表中所有错误精确检查；多行异常不得原样喷出堆栈 | 未实现 |
-| CLI-008 | 本轮约束 | 已知但未实现命令明确报错，不伪造成功 | A/C/T | 五命令已实现；其他十四命令报 command not implemented yet，未知/exit/quit 报 unknown command | 已验证 |
+| CLI-008 | 本轮约束 | 已知但未实现命令明确报错，不伪造成功 | A/C/T | 十一命令已实现；其他八命令报 command not implemented yet，未知/exit/quit 报 unknown command | 已验证 |
 | ID-001 | §2、§4.2 | 所有图形含 g 的 ID 在整个文档唯一、大小写敏感 | D/A/I | r1 与 R1 可并存；跨组同名拒绝，报 `id already exists`；查不到报 `no such shape` | 未实现 |
 | ID-002 | §2 | create/group 必须显式 ID | C/A | 缺 ID 拒绝；不替用户生成 CLI ID | 未实现 |
 | ID-003 | §2、§6 | 外部 SVG 缺 ID 自动使用标签名+序号，并打印警告 | I/D/A/C | 无名 rect/g，精确 `warning: assigned id rect1 to unnamed <rect>`；失败读入不提前发成功警告 | 未实现 |
@@ -105,8 +105,8 @@
 | 编号 | 原文章节 | 需求描述 | 计划模块 | 验收方法或场景 | 当前状态 |
 |---|---|---|---|---|---|
 | ARC-001 | §2.1 | TypeScript 面向对象：类层次、多态、封装、一类一文件且同名 | 全部 | 当前 CliShell 封装流；后续逐图形审查继承/行为，当前不据空骨架宣称全项完成 | 未实现 |
-| ARC-002 | §1.2 | 使用 Command 模式 | A | 五个具体 Command 保存意图并执行，唯一 Dispatcher；参数复制测试；历史接入另见 HIS 项 | 已验证 |
-| ARC-003 | §2.1 | Composite：容器与叶子统一 move/scale/set/delete 等操作，禁止贫血模型 | D/A | 相同命令对 g/叶子执行；行为留在模型内部；测试嵌套 | 未实现 |
+| ARC-002 | §1.2 | 使用 Command 模式 | A | 十一种具体命令，五编辑类继承 EditCommand，真实命令保存在 HistoryEntry；唯一 Dispatcher | 已验证 |
+| ARC-003 | §2.1 | Composite：容器与叶子统一 move/scale/set/delete 等操作，禁止贫血模型 | D/A | 四种编辑 CLI 对 g/叶子统一执行；模型多态与嵌套测试，整组一次撤销 | 已验证 |
 | ARC-004 | §2.1 | 名字分派仅命令分发和图形工厂两处，架构标注未来重构 | A/D/C/I | 审查 switch、if 链、映射注册表、instanceof 与标签比较；移动/显示/XML 不各建分派表 | 未实现 |
 | ARC-005 | 本轮约束；§1.2 | 模块职责、依赖方向、快照方案及变化点形成文档和 PlantUML 图源 | DOC | README 四项架构要求及 decisions、architecture.puml 人工对照 | 已验证 |
 | ENG-001 | 本轮约束 | npm 工程、strict TS、兼容依赖、锁文件、忽略产物 | B/配置 | npm 安装、锁文件一致、git 忽略项、实际版本和 engines | 已验证 |
@@ -156,7 +156,7 @@
 
 ## 第三轮子需求及证据
 
-第二轮统计保留为历史记录；当前以本节及上表为准。SHP-001–008 含后续 set/序列化验收，DOC-006/CLI-006/007 涉及全部业务命令，仍保持未实现，用以下子项限定本轮验证范围。
+第二轮统计保留为历史记录；本节记录第三轮子集。第四轮又验证了部分 SHP 和编辑项，按上表及 R4 状态为准；含 IO 场景的 SHP-001/005/007、全部业务的 DOC-006/CLI-006/007 仍待完整验收。
 
 | 编号 | 原文章节 | 需求描述 | 计划模块 | 验收方法或场景 | 当前状态 |
 |---|---|---|---|---|---|
@@ -183,3 +183,10 @@
 | R4-002 | §3 scale、§4.2；本轮范围 | 同时缩放位置/尺寸，拒绝非正因子，嵌套失败不部分修改 | A/D/T | ScaleCommand.test.ts：五叶子、空组/嵌套、原文错误、溢出；与旧命令共 87 项通过 | 已验证 |
 | R4-003 | §3 set、§4.1；本轮范围 | 按领域属性契约转换值，严格白名单，容器只改自身样式 | A/D/T | SetCommand.test.ts：各数值字段、公共样式、原文文本、未知字段/非法值拒绝；与旧命令/领域共 161 项通过 | 已验证 |
 | R4-004 | §3 delete；本轮范围 | 删除叶子/整棵子树，释放后代 ID 且保留剩余兄弟顺序 | A/D/T | DeleteCommand.test.ts：六类型、子树索引释放/ID 复用、缺失 ID/参数错误；与旧命令共 83 项通过 | 已验证 |
+| R4-005 | §3、§4.3；本轮范围 | create/move/scale/set/delete 一命令一个历史单元，恢复真实类树与索引 | A/D/T | History.test.ts：多步正反恢复、容器一次恢复、类型行为/顺序/缺省样式/文本 | 已验证 |
+| R4-006 | §3、§4.3；本轮范围 | 成功新编辑清 redo；失败编辑/查询保留两栈 | A/T | 失败编辑参数化、成功含 no-op、新 ID 复用、查询/注释对比 | 已验证 |
+| R4-007 | §4.3；本轮范围 | init 成功清空并禁用历史，下一次成功编辑解禁 | A/T | History.test.ts：init 前后 redo/undo、失败 init/编辑不解禁，不跨旧文档恢复 | 已验证 |
+| R4-008 | §2；本轮范围 | 活动文档、两栈和禁用位原子提交，快照不共享可变状态 | A/D/T | 注入快照/历史准备/恢复失败；双向改输入与恢复结果不污染历史 | 已验证 |
+| R4-009 | §6.1 版本 A；本轮范围 | 真实 CLI 编辑/撤销/重做回放、错误恢复及 EOF 消费 | C/A/T/examples | Round4Replay.test.ts 固定树/错误列表；开发与编译回放退出 0、stderr 空、输出一致 | 已验证 |
+
+第四轮累计 109 条需求/子需求，66 条已验证、43 条未实现。typecheck、292 项测试、build、两入口回放均通过。HIS 原项涉及未来结构命令、所有 IO 屏障与 canvas 查询，保留未实现状态；当前五编辑历史和 init 屏障以 R4-005–008 单独验收。分步本地提交不等于远程已同步。

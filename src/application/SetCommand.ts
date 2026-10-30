@@ -9,7 +9,7 @@ export class SetCommand extends EditCommand {
   readonly #value: CommandToken;
 
   public constructor(private readonly id: string, private readonly attribute: string, value: CommandToken) {
-    super();
+    super(`set ${id} ${attribute}`);
     this.#value = Object.freeze({ ...value });
   }
 

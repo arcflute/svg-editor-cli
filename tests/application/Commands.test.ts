@@ -162,8 +162,10 @@ describe('create parsing and candidate commits', () => {
       expect(previousDocuments[0]).toBe(previousDocuments[1]);
       expect(previousDocuments[0]!.find('next')).toBeUndefined();
       expect(clones[1]!.find('next')).toBeDefined();
+      const callsBeforeNextEdit = previousDocuments.length;
       run('create g last');
-      expect(previousDocuments[2]).toBe(clones[1]);
+      // Snapshot clones may also occur; the next edit still starts from the committed candidate.
+      expect(previousDocuments[callsBeforeNextEdit]).toBe(clones[1]);
       expect(session.readTree().nodes.map(node => node.shape.id)).toEqual(['original', 'next', 'last']);
     } finally { spy.mockRestore(); }
   });
@@ -220,7 +222,7 @@ describe('queries, help and immutable boundaries', () => {
     expect(lines).toContain('  create rect <id> <x> <y> <w> <h> [fill] [in <containerId>]');
     expect(lines).toContain('  create line <id> <x1> <y1> <x2> <y2> [stroke] [in <containerId>]');
     expect(lines).toContain('  create text <id> <x> <y> "content" [in <containerId>]');
-    for (const name of ['read', 'save', 'canvas', 'group', 'ungroup', 'addto', 'front', 'back', 'undo', 'redo']) {
+    for (const name of ['read', 'save', 'canvas', 'group', 'ungroup', 'addto', 'front', 'back']) {
       expect(lines.find(line => line.startsWith(`  ${name} `))).toContain('[not implemented yet]');
       expect(() => run(name)).toThrow(`command not implemented yet: ${name}`);
     }
